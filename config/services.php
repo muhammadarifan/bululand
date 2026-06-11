@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'gowa' => [
+        'webhook_secret' => env('GOWA_WEBHOOK_SECRET'),
+    ],
+
 ];
