@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -7,7 +8,5 @@ Route::get('/', function () {
 });
 
 Route::domain('{event}.bululand.web.id')->group(function () {
-    Route::get('/', function ($event) {
-        return "Selamat datang di $event";
-    });
+    Route::get('/', [EventController::class, 'show'])->name('events.show');
 });
