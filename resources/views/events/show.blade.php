@@ -8,7 +8,7 @@
     $eventTitle = ucfirst($event);
 @endphp
 
-<div class="min-h-screen bg-[#FDFDFC] text-[#1B1B18] font-[Instrument_Sans]">
+<div class="min-h-screen scroll-smooth bg-[#FDFDFC] text-[#1B1B18] font-[Instrument_Sans]">
     <header class="sticky top-0 z-50 border-b border-stone-200/70 bg-[#FDFDFC]/85 backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <a href="{{ route('events.show', $event) }}" class="flex items-center gap-3">
@@ -32,7 +32,7 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-7xl px-4 py-10 pb-28 sm:px-6 sm:pb-0 lg:px-8">
         <section id="keuangan" class="mb-10">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -234,6 +234,38 @@
             </div>
         </section>
     </main>
+
+    <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200 bg-[#FDFDFC]/95 pb-3 pt-2 backdrop-blur-xl md:hidden">
+        <div class="mx-auto grid max-w-sm grid-cols-4 gap-1 px-3">
+            <a href="#keuangan" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Zm0 4c1.66 0 3 1.34 3 3v3H9v-3c0-1.66 1.34-3 3-3Zm6 2v-3c0-1.66-1.34-3-3-3-.37 0-.72.08-1.04.21C14.41 7.09 13.3 6 12 6c-1.3 0-2.41 1.09-2.96 2.21A2.98 2.98 0 0 0 8 8c-1.66 0-3 1.34-3 3v3H3v4h18v-4h-2Z"/>
+                </svg>
+                <span>Keuangan</span>
+            </a>
+
+            <a href="#iuran" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h6M9 15h6"/>
+                </svg>
+                <span>Iuran</span>
+            </a>
+
+            <a href="#pengumuman" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 0 1-1.564-.317Z"/>
+                </svg>
+                <span>Pengumuman</span>
+            </a>
+
+            <a href="#galeri" class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/>
+                </svg>
+                <span>Galeri</span>
+            </a>
+        </div>
+    </nav>
 
     <footer class="mt-16 bg-[#111827] text-white">
         <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
