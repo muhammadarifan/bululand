@@ -31,9 +31,9 @@ $eventTitle = ucfirst($event);
                     class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-950">Pengumuman</a>
             </nav>
 
-            <a href="#donation-search"
-                class="rounded-full bg-[#111827] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-stone-900/15 transition hover:bg-[#030712]">Donasi
-                Sekarang</a>
+            <a href="#pencarian"
+                class="rounded-full bg-[#111827] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-stone-900/15 transition hover:bg-[#030712]">Cek
+                Data</a>
         </div>
     </header>
 
@@ -55,7 +55,7 @@ $eventTitle = ucfirst($event);
                         <span
                             class="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-emerald-500 text-xs font-bold text-white">R</span>
                     </div>
-                    <span class="text-sm font-medium text-stone-600">1000+ Donor aktif</span>
+                    <span class="text-sm font-medium text-stone-600">1000+ Warga aktif</span>
                 </div>
 
                 <h1 class="mt-7 text-5xl font-bold tracking-tight text-[#111827] sm:text-6xl lg:text-7xl">
@@ -63,14 +63,14 @@ $eventTitle = ucfirst($event);
                 </h1>
 
                 <p class="mt-6 max-w-xl text-lg leading-8 text-stone-600">
-                    Bersama, kita bisa memberi dampak nyata di lingkungan sekitar. Dukung kegiatan Kelurahan Bululand
-                    melalui transparansi kontribusi, galeri kegiatan, dan pengumuman penting.
+                    Bersama, kita bisa memberi dampak nyata di lingkungan sekitar. Pantau kegiatan Kelurahan Bululand
+                    melalui pencarian data, transparansi keuangan, galeri kegiatan, dan pengumuman penting.
                 </p>
 
                 <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                    <a href="#donation-search"
+                    <a href="#pencarian"
                         class="inline-flex items-center justify-center gap-2 rounded-full bg-[#111827] px-7 py-4 text-sm font-bold text-white shadow-xl shadow-stone-900/20 transition hover:bg-[#030712]">
-                        Donasi Sekarang
+                        Cek Data Warga
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="2.2"
                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -164,13 +164,13 @@ $eventTitle = ucfirst($event);
     <div class="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="rounded-3xl border border-red-200 bg-red-50 px-6 py-5 text-red-700 shadow-sm">
             <p class="font-bold text-lg">Pencarian tidak ditemukan</p>
-            <p class="mt-1 text-sm leading-6">Tidak ada data kontribusi untuk "<span class="font-semibold">{{
+            <p class="mt-1 text-sm leading-6">Tidak ada data pembayaran untuk "<span class="font-semibold">{{
                     $contributionResults['query'] }}</span>". Silakan periksa kembali nama rumah Anda.</p>
         </div>
     </div>
     @endif
 
-    <section id="donation-search" class="relative -mt-4 z-20 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <section id="pencarian" class="relative -mt-4 z-20 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div class="rounded-4xl border border-stone-200 bg-white p-3 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
             <form method="GET" action="{{ route('events.show', $event) }}" class="flex flex-col gap-3 sm:flex-row">
                 <div class="relative flex-1">
@@ -179,7 +179,7 @@ $eventTitle = ucfirst($event);
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <input type="text" name="search" placeholder="Masukkan nama rumah untuk cek kontribusi..."
+                    <input type="text" name="search" placeholder="Masukkan nama rumah untuk cek data..."
                         value="{{ $searchQuery }}"
                         class="h-14 w-full rounded-[1.25rem] border border-stone-200 bg-stone-50 pl-14 pr-5 text-base font-medium text-stone-800 outline-none transition placeholder:text-stone-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100">
                 </div>
@@ -189,7 +189,7 @@ $eventTitle = ucfirst($event);
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Cek Kontribusi
+                    Cek Data Rumah
                 </button>
             </form>
         </div>
@@ -387,7 +387,7 @@ $eventTitle = ucfirst($event);
                     </span>
                     <span class="text-xl font-bold">Kindora</span>
                 </div>
-                <p class="mt-4 max-w-sm leading-7 text-stone-400">Platform transparansi kegiatan dan kontribusi warga
+                <p class="mt-4 max-w-sm leading-7 text-stone-400">Platform transparansi kegiatan dan informasi warga
                     Bululand.</p>
             </div>
 
