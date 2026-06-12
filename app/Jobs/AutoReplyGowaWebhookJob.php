@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class AutoReplyGowaWebhookJob implements ShouldQueue
 {
@@ -18,6 +19,9 @@ class AutoReplyGowaWebhookJob implements ShouldQueue
 
     public function handle(AutoReplyGowaWebhookService $service): void
     {
+        Log::info('Auto reply job', [
+            'payload' => $this->payload,
+        ]);
         $service->handle(GowaWebhookPayload::from($this->payload));
     }
 }

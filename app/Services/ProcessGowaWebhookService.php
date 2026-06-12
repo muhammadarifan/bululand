@@ -6,6 +6,7 @@ use App\DTO\GowaWebhookPayload;
 use App\Jobs\AutoReplyGowaWebhookJob;
 use App\Models\GowaWebhookEvent;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 final class ProcessGowaWebhookService
 {
@@ -45,6 +46,9 @@ final class ProcessGowaWebhookService
         $payload->message();
         $payload->timestamp();
 
+        Log::info('Gowa webhook payload processed', [
+            'payload' => $payload->all(),
+        ]);
         AutoReplyGowaWebhookJob::dispatch($payload->all());
     }
 
