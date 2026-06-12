@@ -13,6 +13,9 @@ final class ProcessGowaWebhookService
     public function handle(array $payload): void
     {
         $webhookPayload = GowaWebhookPayload::from($payload);
+        Log::info('Gowa webhook payload received', [
+            'payload' => $webhookPayload->all(),
+        ]);
         $eventId = $webhookPayload->messageId();
 
         if ($eventId === null) {
