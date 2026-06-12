@@ -11,6 +11,7 @@
         "laravel/framework": "^13.8",
         "laravel/octane": "*",
         "laravel/tinker": "^3.0",
+        "opcodesio/log-viewer": "*",
         "ratchet/pawl": "*"
     },
     "require-dev": {
