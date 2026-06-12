@@ -58,7 +58,7 @@ class GowaWebhookController extends Controller
 
         $payload = $request->getContent();
 
-        $expectedSignature = 'sha256='.hash_hmac(
+        $expectedSignature = 'sha256=' . hash_hmac(
             'sha256',
             $payload,
             $secret
