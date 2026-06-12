@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\DTO\GowaWebhookPayload;
 use App\Services\Gowa\GowaMessageSender;
+use Illuminate\Support\Facades\Log;
 
 use function data_get;
 
@@ -14,6 +15,11 @@ class AutoReplyGowaWebhookService
     public function handle(GowaWebhookPayload $payload): void
     {
         $reply = $this->replyForMessage($payload);
+
+        Log::info('Auto reply', [
+            'reply' => $reply,
+            'payload' => $payload->all(),
+        ]);
 
         if ($reply === null || $reply === '') {
             return;
