@@ -13,7 +13,7 @@ final class ProcessGowaWebhookService
     public function handle(array $payload): void
     {
         $webhookPayload = GowaWebhookPayload::from($payload);
-        Log::info('Gowa webhook payload received', [
+        Log::info('Gowa webhook payload received 2', [
             'payload' => $webhookPayload->all(),
         ]);
         $eventId = $webhookPayload->messageId();
@@ -21,6 +21,8 @@ final class ProcessGowaWebhookService
         if ($eventId === null) {
             return;
         }
+
+        $this->process($webhookPayload);
 
         try {
             $event = GowaWebhookEvent::query()->create([
@@ -35,8 +37,6 @@ final class ProcessGowaWebhookService
 
             throw $exception;
         }
-
-        $this->process($webhookPayload);
     }
 
     private function process(GowaWebhookPayload $payload): void
