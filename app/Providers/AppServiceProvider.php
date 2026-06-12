@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Gowa\GowaMessageSender;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(GowaMessageSender::class, static fn (): GowaMessageSender => GowaMessageSender::fromConfig());
     }
 
     /**
@@ -19,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\URL::forceScheme('https');
+        URL::forceScheme('https');
     }
 }

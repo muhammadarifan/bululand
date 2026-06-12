@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTO\GowaWebhookPayload;
+use App\Jobs\AutoReplyGowaWebhookJob;
 use App\Models\GowaWebhookEvent;
 use Illuminate\Database\QueryException;
 
@@ -43,6 +44,8 @@ final class ProcessGowaWebhookService
         $payload->pushName();
         $payload->message();
         $payload->timestamp();
+
+        AutoReplyGowaWebhookJob::dispatch($payload->all());
     }
 
     private function isDuplicateEvent(QueryException $exception): bool

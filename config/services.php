@@ -37,6 +37,10 @@ return [
 
     'gowa' => [
         'webhook_secret' => env('GOWA_WEBHOOK_SECRET'),
+        'base_url' => env('GOWA_BASE_URL', 'http://localhost:3000'),
+        'username' => env('GOWA_USERNAME', 'admin'),
+        'password' => env('GOWA_PASSWORD'),
+        'device_id' => env('GOWA_DEVICE_ID'),
     ],
 
 ];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\AutoReplyGowaWebhookJob;
 use App\Jobs\ProcessGowaWebhookJob;
 use App\Models\GowaWebhookEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,10 +12,10 @@ beforeEach(function (): void {
     config(['services.gowa.webhook_secret' => 'test-secret']);
 });
 
-function gowaHeaders(string $signature = 'test-secret'): array
+function gowaHeaders(array $payload, string $secret = 'test-secret'): array
 {
     return [
-        'X-Gowa-Signature' => $signature,
+        'X-Hub-Signature-256' => 'sha256='.hash_hmac('sha256', json_encode($payload), $secret),
     ];
 }
 
@@ -37,7 +38,9 @@ function gowaPayload(string $messageId = 'message-1'): array
 test('webhook secret valid returns success', function (): void {
     Queue::fake();
 
-    $this->postJson('/webhook/gowa', gowaPayload(), gowaHeaders())
+    $payload = gowaPayload();
+
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload))
         ->assertOk()
         ->assertJson(['success' => true]);
 
@@ -47,7 +50,9 @@ test('webhook secret valid returns success', function (): void {
 test('webhook secret invalid returns unauthorized', function (): void {
     Queue::fake();
 
-    $this->postJson('/webhook/gowa', gowaPayload(), gowaHeaders('wrong-secret'))
+    $payload = gowaPayload();
+
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload, 'wrong-secret'))
         ->assertUnauthorized();
 
     Queue::assertNothingPushed();
@@ -58,7 +63,7 @@ test('job berhasil di-dispatch dengan payload webhook', function (): void {
 
     $payload = gowaPayload('message-dispatch');
 
-    $this->postJson('/webhook/gowa', $payload, gowaHeaders())
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload))
         ->assertOk();
 
     Queue::assertPushed(ProcessGowaWebhookJob::class, function (ProcessGowaWebhookJob $job) use ($payload): bool {
@@ -66,12 +71,25 @@ test('job berhasil di-dispatch dengan payload webhook', function (): void {
     });
 });
 
+test('auto reply job berhasil di-dispatch dengan payload webhook', function (): void {
+    Queue::fake([AutoReplyGowaWebhookJob::class]);
+
+    $payload = gowaPayload('message-auto-reply');
+
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload))
+        ->assertOk();
+
+    Queue::assertPushed(AutoReplyGowaWebhookJob::class, function (AutoReplyGowaWebhookJob $job) use ($payload): bool {
+        return $job->payload === $payload;
+    });
+});
+
 test('duplicate event tidak diproses ulang', function (): void {
     $payload = gowaPayload('message-duplicate');
 
-    $this->postJson('/webhook/gowa', $payload, gowaHeaders())
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload))
         ->assertOk();
-    $this->postJson('/webhook/gowa', $payload, gowaHeaders())
+    $this->postJson('/webhook/gowa', $payload, gowaHeaders($payload))
         ->assertOk();
 
     $this->assertSame(1, GowaWebhookEvent::count());
