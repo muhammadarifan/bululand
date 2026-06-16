@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class EventController extends Controller
 {
-    public function show(Request $request, $event)
+    public function show(Request $request, $event = null)
     {
         $eventSlug = $event;
 

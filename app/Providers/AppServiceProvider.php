@@ -13,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(GowaMessageSender::class, static fn (): GowaMessageSender => GowaMessageSender::fromConfig());
+        $this->app->singleton(GowaMessageSender::class, static fn(): GowaMessageSender => GowaMessageSender::fromConfig());
     }
 
     /**
@@ -21,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        URL::forceScheme('https');
+        if (!$this->app->environment('local')) {
+            URL::forceScheme('https');
+        }
     }
 }
