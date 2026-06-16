@@ -1,91 +1,101 @@
 @extends('layouts.app')
 
-@section('title', 'Event ' . ucfirst($event))
+@section('title', 'Event ' . $event->name)
 
 @section('content')
 @php
 $balance = $totalIncome - $totalExpense;
-$eventTitle = ucfirst($event);
 @endphp
 
-<div class="min-h-screen scroll-smooth bg-[#FDFDFC] text-[#1B1B18] font-[Instrument_Sans]">
-    <header class="sticky top-0 z-50 border-b border-stone-200/70 bg-[#FDFDFC]/85 backdrop-blur-xl">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-            <a href="{{ route('events.show', $event) }}" class="flex items-center gap-3">
-                <span
-                    class="grid h-10 w-10 place-items-center rounded-2xl bg-[#FF7A1A] text-white shadow-lg shadow-orange-500/25">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" opacity="0.95" />
-                        <path d="M12 7.2L16.2 9.6V14.4L12 16.8L7.8 14.4V9.6L12 7.2Z" fill="#1B1B18" />
+<div class="min-h-screen bg-white text-neutral-900 antialiased">
+    {{-- Header --}}
+    <header class="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur-md">
+        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+            <a href="{{ route('events.show', $event->subdomain) }}" class="flex items-center gap-3">
+                @if ($eventDetail && $eventDetail->logo)
+                <img src="{{ $eventDetail->logo }}" alt="{{ $event->name }} logo" class="h-8 w-8 rounded-full">
+                @else
+                <span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-800 text-white">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" />
                     </svg>
                 </span>
-                <span class="text-xl font-bold tracking-tight text-[#1B1B18]">{{ $eventTitle ?? 'Bululand' }}</span>
+                @endif
+                <span class="text-base font-semibold tracking-tight">{{ $event->name }}</span>
             </a>
-
-            {{-- <nav class="hidden items-center gap-2 md:flex">
-                <a href="#keuangan"
-                    class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-950">Keuangan</a>
-                <a href="#iuran"
-                    class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-950">Iuran</a>
-                <a href="#pengumuman"
-                    class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-950">Pengumuman</a>
-                <a href="#galeri"
-                    class="rounded-full px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 hover:text-stone-950">Galeri</a>
-            </nav>
-
-            <a href="#iuran"
-                class="rounded-full bg-[#111827] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-stone-900/15 transition hover:bg-[#030712]">Cek
-                Iuran</a> --}}
         </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 py-10 pb-28 sm:px-6 sm:pb-0 lg:px-8">
+    <main class="mx-auto max-w-5xl px-4 py-10 pb-28 sm:px-6 sm:pb-0">
+
+        {{-- Hero Section --}}
+        @if ($eventDetail && ($eventDetail->hero_image || $eventDetail->hero_title || $eventDetail->hero_subtitle))
+        <section class="mb-16">
+            @if ($eventDetail->hero_image)
+            <div class="overflow-hidden rounded-xl bg-neutral-100">
+                <img src="{{ $eventDetail->hero_image }}" alt="{{ $event->name }}" class="w-full">
+            </div>
+            @endif
+            @if ($eventDetail->hero_title || $eventDetail->hero_subtitle)
+            <div class="mt-4">
+                @if ($eventDetail->hero_title)
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ $eventDetail->hero_title }}</h1>
+                @endif
+                @if ($eventDetail->hero_subtitle)
+                <p class="mt-2 text-base leading-relaxed text-neutral-500">{{ $eventDetail->hero_subtitle }}</p>
+                @endif
+            </div>
+            @endif
+        </section>
+        @endif
+
+        {{-- Search Error --}}
         @if ($searchQuery !== '' && isset($contributionResults['not_found']))
         <section class="mb-10">
-            <div class="rounded-[1.75rem] border border-red-200 bg-red-50 px-6 py-5 text-red-700 shadow-sm">
-                <p class="font-bold text-lg">Pencarian tidak ditemukan</p>
-                <p class="mt-1 text-sm leading-6">Tidak ada data iuran untuk "<span class="font-semibold">{{
+            <div class="rounded-lg border border-neutral-300 bg-neutral-50 px-5 py-4 text-neutral-600">
+                <p class="font-semibold">Pencarian tidak ditemukan</p>
+                <p class="mt-1 text-sm">Tidak ada data iuran untuk "<span class="font-medium">{{
                         $contributionResults['query'] }}</span>". Silakan periksa kembali nama rumah Anda.</p>
             </div>
         </section>
         @endif
 
+        {{-- Search Results --}}
         @if ($searchQuery !== '' && !isset($contributionResults['not_found']))
         <section class="mb-10">
-            <div class="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm">
-                <div
-                    class="flex flex-col gap-3 border-b border-stone-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div class="overflow-hidden rounded-xl border border-neutral-200">
+                <div class="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
                     <div>
-                        <p class="text-sm font-semibold text-orange-600">Hasil Pencarian</p>
-                        <h2 class="mt-1 text-2xl font-bold text-[#111827]">"{{ $searchQuery }}"</h2>
+                        <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Hasil Pencarian</p>
+                        <h2 class="mt-1 text-xl font-bold">"{{ $searchQuery }}"</h2>
                     </div>
-                    <span class="w-fit rounded-full bg-stone-100 px-4 py-2 text-sm font-semibold text-stone-600">{{
-                        count($contributionResults) }} data ditemukan</span>
+                    <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-500">{{
+                        count($contributionResults) }} data</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-stone-50 text-sm font-semibold text-stone-500">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-neutral-50 text-xs font-semibold uppercase tracking-wider text-neutral-400">
                             <tr>
-                                <th class="px-6 py-4">Nama Rumah</th>
-                                <th class="px-6 py-4 text-right">Jumlah Pembayaran</th>
-                                <th class="px-6 py-4 text-center">Status</th>
+                                <th class="px-5 py-3">Nama Rumah</th>
+                                <th class="px-5 py-3 text-right">Jumlah</th>
+                                <th class="px-5 py-3 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-stone-100">
+                        <tbody class="divide-y divide-neutral-100">
                             @foreach ($contributionResults as $result)
-                            <tr class="transition hover:bg-stone-50">
-                                <td class="px-6 py-5 text-base font-bold text-[#111827]">{{ $result['name'] }}</td>
-                                <td class="px-6 py-5 text-right text-base font-semibold text-stone-700">Rp {{
-                                    number_format($result['paid_amount'], 0, ',', '.') }}</td>
-                                <td class="px-6 py-5 text-center">
+                            <tr class="transition hover:bg-neutral-50">
+                                <td class="px-5 py-4 font-semibold">{{ $result['name'] }}</td>
+                                <td class="px-5 py-4 text-right font-medium">Rp {{ number_format($result['paid_amount'],
+                                    0, ',', '.') }}</td>
+                                <td class="px-5 py-4 text-center">
                                     @if ($result['paid_amount'] > 0)
                                     <span
-                                        class="inline-flex items-center rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700">Sudah
+                                        class="inline-flex rounded-full bg-neutral-800 px-3 py-1 text-xs font-medium text-white">Sudah
                                         Bayar</span>
                                     @else
                                     <span
-                                        class="inline-flex items-center rounded-full bg-red-100 px-4 py-2 text-sm font-bold text-red-700">Belum
+                                        class="inline-flex rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-500">Belum
                                         Bayar</span>
                                     @endif
                                 </td>
@@ -98,41 +108,31 @@ $eventTitle = ucfirst($event);
         </section>
         @endif
 
-        <section id="iuran" class="mb-10">
-            <div
-                class="overflow-hidden rounded-[2.5rem] bg-[#111827] p-6 shadow-[0_32px_90px_rgba(15,23,42,0.18)] sm:p-8 lg:p-10">
-                <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                    <div class="text-white">
-                        <span
-                            class="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-orange-300">Cek
-                            Iuran</span>
-                        <h2 class="mt-5 text-3xl font-bold tracking-tight sm:text-4xl">Cek status iuran dan pembayaran
-                        </h2>
-                        <p class="mt-4 text-lg leading-8 text-stone-300">Masukkan nama rumah untuk melihat status
-                            pembayaran iuran secara cepat.</p>
+        {{-- Cek Iuran Section --}}
+        <section id="iuran" class="mb-16">
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
+                <div class="grid gap-6 sm:grid-cols-2 sm:items-center">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Cek Iuran</span>
+                        <h2 class="mt-2 text-2xl font-bold tracking-tight">Cek status iuran</h2>
+                        <p class="mt-2 text-sm leading-relaxed text-neutral-500">Masukkan nama rumah untuk melihat
+                            status pembayaran iuran.</p>
                     </div>
-
-                    <div class="rounded-[2rem] bg-white p-3 shadow-2xl shadow-stone-900/20">
-                        <form method="GET" action="{{ route('events.show', $event) }}"
-                            class="flex flex-col gap-3 sm:flex-row">
+                    <div>
+                        <form method="GET" action="{{ route('events.show', $event->subdomain) }}"
+                            class="flex flex-col gap-2 sm:flex-row">
                             <div class="relative flex-1">
-                                <svg class="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input type="text" name="search" placeholder="Masukkan nama rumah..."
-                                    value="{{ $searchQuery }}"
-                                    class="h-14 w-full rounded-[1.25rem] border border-stone-200 bg-stone-50 pl-14 pr-5 text-base font-medium text-stone-800 outline-none transition placeholder:text-stone-400 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-100">
+                                <input type="text" name="search" placeholder="Nama rumah..." value="{{ $searchQuery }}"
+                                    class="h-10 w-full rounded-lg border border-neutral-300 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-800">
                             </div>
                             <button type="submit"
-                                class="inline-flex h-14 items-center justify-center gap-2 rounded-[1.25rem] bg-[#111827] px-7 text-sm font-bold text-white transition hover:bg-[#030712] sm:h-auto">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                Cek Iuran
+                                class="inline-flex h-10 items-center justify-center rounded-lg bg-neutral-800 px-5 text-sm font-medium text-white transition hover:bg-neutral-900">
+                                Cari
                             </button>
                         </form>
                     </div>
@@ -140,145 +140,186 @@ $eventTitle = ucfirst($event);
             </div>
         </section>
 
-        <section id="keuangan" class="mb-10">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <span
-                        class="inline-flex rounded-full bg-orange-100 px-4 py-2 text-sm font-bold text-orange-700">Transparansi
-                        Keuangan</span>
-                    <h1 class="mt-5 text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl">Ringkasan Pemasukan &
-                        Pengeluaran</h1>
-                    <p class="mt-4 max-w-2xl text-lg leading-8 text-stone-600">Informasi keuangan Event {{ $eventTitle
-                        }} ditampilkan paling atas agar warga bisa melihat ringkasan iuran dengan cepat.</p>
-                </div>
+        {{-- Keuangan Section --}}
+        <section id="keuangan" class="mb-16">
+            <div class="mb-6">
+                <span class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Transparansi
+                    Keuangan</span>
+                <h1 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Ringkasan Keuangan</h1>
+                @if ($eventDetail && $eventDetail->hero_subtitle)
+                <p class="mt-3 max-w-xl text-sm leading-relaxed text-neutral-500">{{ $eventDetail->hero_subtitle }}</p>
+                @endif
             </div>
 
-            <div class="mt-8 grid gap-5 md:grid-cols-3">
-                <div
-                    class="rounded-[2rem] border border-emerald-100 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-                    <div class="mb-5 flex items-center justify-between">
-                        <div class="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                aria-hidden="true">http://127.0.0.1:8001/
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div class="rounded-xl border border-neutral-200 bg-white p-5">
+                    <div class="mb-3 flex items-center justify-between">
+                        <div class="grid h-10 w-10 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6z" />
                             </svg>
                         </div>
-                        <span
-                            class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Pemasukan</span>
+                        <span class="text-xs font-medium text-neutral-400">Pemasukan</span>
                     </div>
-                    <p class="text-sm font-semibold text-stone-500">Total Pemasukan</p>
-                    <p class="mt-2 text-3xl font-black text-emerald-600">Rp {{ number_format($totalIncome, 0, ',', '.')
-                        }}</p>
+                    <p class="text-2xl font-bold">Rp {{ number_format($totalIncome, 0, ',', '.') }}</p>
                 </div>
 
-                <div class="rounded-[2rem] border border-red-100 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-                    <div class="mb-5 flex items-center justify-between">
-                        <div class="grid h-12 w-12 place-items-center rounded-2xl bg-red-100 text-red-600">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                <div class="rounded-xl border border-neutral-200 bg-white p-5">
+                    <div class="mb-3 flex items-center justify-between">
+                        <div class="grid h-10 w-10 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                             </svg>
                         </div>
-                        <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700">Pengeluaran</span>
+                        <span class="text-xs font-medium text-neutral-400">Pengeluaran</span>
                     </div>
-                    <p class="text-sm font-semibold text-stone-500">Total Pengeluaran</p>
-                    <p class="mt-2 text-3xl font-black text-red-600">Rp {{ number_format($totalExpense, 0, ',', '.') }}
-                    </p>
+                    <p class="text-2xl font-bold">Rp {{ number_format($totalExpense, 0, ',', '.') }}</p>
                 </div>
 
-                <div
-                    class="rounded-[2rem] border border-blue-100 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-                    <div class="mb-5 flex items-center justify-between">
-                        <div class="grid h-12 w-12 place-items-center rounded-2xl bg-blue-100 text-blue-600">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                <div class="rounded-xl border border-neutral-200 bg-white p-5">
+                    <div class="mb-3 flex items-center justify-between">
+                        <div class="grid h-10 w-10 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Saldo</span>
+                        <span class="text-xs font-medium text-neutral-400">Saldo</span>
                     </div>
-                    <p class="text-sm font-semibold text-stone-500">Sisa Saldo</p>
-                    <p class="mt-2 text-3xl font-black {{ $balance >= 0 ? 'text-emerald-600' : 'text-red-600' }}">Rp {{
+                    <p class="text-2xl font-bold {{ $balance >= 0 ? 'text-neutral-900' : 'text-neutral-500' }}">Rp {{
                         number_format($balance, 0, ',', '.') }}</p>
                 </div>
             </div>
         </section>
+
+        {{-- About Section --}}
+        @if ($eventDetail && $eventDetail->about_title)
+        <section id="tentang" class="mb-16">
+            <div class="border-t border-neutral-200 pt-8">
+                <h2 class="text-2xl font-bold tracking-tight">{{ $eventDetail->about_title }}</h2>
+                <div class="mt-3 text-sm leading-relaxed text-neutral-500">
+                    {!! nl2br(e($eventDetail->about_content)) !!}
+                </div>
+            </div>
+        </section>
+        @endif
+
+        {{-- Video Section --}}
+        @if ($eventDetail && $eventDetail->youtube_url)
+        <section id="video" class="mb-16">
+            <div class="overflow-hidden rounded-xl border border-neutral-200">
+                <div class="aspect-video">
+                    <iframe src="{{ $eventDetail->youtube_url }}" title="YouTube video" class="h-full w-full"
+                        allowfullscreen></iframe>
+                </div>
+            </div>
+        </section>
+        @endif
     </main>
 
+    {{-- Mobile Bottom Nav --}}
     <nav
-        class="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200 bg-[#FDFDFC]/95 pb-3 pt-2 backdrop-blur-xl md:hidden">
-        <div class="mx-auto grid max-w-sm grid-cols-4 gap-1 px-3">
+        class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 pb-2 pt-1 backdrop-blur-md md:hidden">
+        <div class="mx-auto grid max-w-xs grid-cols-4 gap-1 px-2">
             <a href="#keuangan"
-                class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                class="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-800">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M12 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Zm0 4c1.66 0 3 1.34 3 3v3H9v-3c0-1.66 1.34-3 3-3Zm6 2v-3c0-1.66-1.34-3-3-3-.37 0-.72.08-1.04.21C14.41 7.09 13.3 6 12 6c-1.3 0-2.41 1.09-2.96 2.21A2.98 2.98 0 0 0 8 8c-1.66 0-3 1.34-3 3v3H3v4h18v-4h-2Z" />
                 </svg>
                 <span>Keuangan</span>
             </a>
-
             <a href="#iuran"
-                class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+                class="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-800">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h6M9 15h6" />
                 </svg>
                 <span>Iuran</span>
             </a>
-
-            <a href="#pengumuman"
-                class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+            <a href="#tentang"
+                class="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-800">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 0 1-1.564-.317Z" />
                 </svg>
-                <span>Pengumuman</span>
+                <span>Tentang</span>
             </a>
-
-            <a href="#galeri"
-                class="flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-stone-950">
+            <a href="#video"
+                class="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-800">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M4 16l4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2l1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
                 </svg>
-                <span>Galeri</span>
+                <span>Video</span>
             </a>
         </div>
     </nav>
 
-    <footer class="mt-16 bg-[#111827] text-white">
-        <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
-            <div>
-                <div class="flex items-center gap-3">
-                    <span class="grid h-10 w-10 place-items-center rounded-2xl bg-[#FF7A1A] text-white">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" />
-                        </svg>
-                    </span>
-                    <span class="text-xl font-bold">Bululand</span>
+    {{-- Footer --}}
+    <footer class="border-t border-neutral-200 bg-neutral-50">
+        <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+            <div class="grid gap-8 sm:grid-cols-3">
+                <div>
+                    <div class="flex items-center gap-3">
+                        @if ($eventDetail && $eventDetail->logo)
+                        <img src="{{ $eventDetail->logo }}" alt="{{ $event->name }} logo" class="h-8 w-8 rounded-full">
+                        @else
+                        <span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-800 text-white">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                        @endif
+                        <span class="text-base font-semibold">{{ $event->name }}</span>
+                    </div>
+                    @if ($eventDetail && $eventDetail->footer_text)
+                    <p class="mt-3 text-sm leading-relaxed text-neutral-500">{{ $eventDetail->footer_text }}</p>
+                    @endif
                 </div>
-                <p class="mt-4 max-w-sm leading-7 text-stone-400">Platform informasi kegiatan dan iuran warga Bululand.
-                </p>
-            </div>
 
-            <div>
-                <p class="font-bold">Navigasi</p>
-                <div class="mt-4 space-y-3 text-stone-400">
-                    <a href="#keuangan" class="block transition hover:text-white">Keuangan</a>
-                    <a href="#iuran" class="block transition hover:text-white">Iuran</a>
-                    <a href="#pengumuman" class="block transition hover:text-white">Pengumuman</a>
-                    <a href="#galeri" class="block transition hover:text-white">Galeri</a>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Navigasi</p>
+                    <div class="mt-3 space-y-2 text-sm text-neutral-500">
+                        <a href="#keuangan" class="block transition hover:text-neutral-800">Keuangan</a>
+                        <a href="#iuran" class="block transition hover:text-neutral-800">Iuran</a>
+                        @if ($eventDetail && $eventDetail->about_title)
+                        <a href="#tentang" class="block transition hover:text-neutral-800">Tentang</a>
+                        @endif
+                        @if ($eventDetail && $eventDetail->youtube_url)
+                        <a href="#video" class="block transition hover:text-neutral-800">Video</a>
+                        @endif
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <p class="font-bold">Kontak</p>
-                <div class="mt-4 space-y-3 text-stone-400">
-                    <p>Kelurahan Bululand</p>
-                    <p>bululand.web.id</p>
-                    <p>&copy; {{ date('Y') }} Bululand Web</p>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Kontak</p>
+                    <div class="mt-3 space-y-2 text-sm text-neutral-500">
+                        @if ($eventDetail && $eventDetail->contacts)
+                        @foreach (json_decode($eventDetail->contacts, true) as $contact)
+                        @if ($contact['name'] ?? $contact['phone'])
+                        <p>{{ $contact['name'] ?? '' }}: {{ $contact['phone'] ?? '' }}</p>
+                        @endif
+                        @endforeach
+                        @elseif ($eventDetail && ($eventDetail->contact_name || $eventDetail->contact_phone))
+                        <p>{{ $eventDetail->contact_name }}: {{ $eventDetail->contact_phone }}</p>
+                        @endif
+
+                        @if ($eventDetail && $eventDetail->facebook_url)
+                        <a href="{{ $eventDetail->facebook_url }}" target="_blank"
+                            class="block transition hover:text-neutral-800">Facebook</a>
+                        @endif
+                        @if ($eventDetail && $eventDetail->instagram_url)
+                        <a href="{{ $eventDetail->instagram_url }}" target="_blank"
+                            class="block transition hover:text-neutral-800">Instagram</a>
+                        @endif
+
+                        <p class="pt-2 text-xs text-neutral-400">&copy; {{ date('Y') }} {{ $event->name }}</p>
+                    </div>
                 </div>
             </div>
         </div>

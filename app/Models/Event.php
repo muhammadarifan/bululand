@@ -3,23 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Event extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'subdomain', 'is_active', 'active_until'];
 
-    public function contributions()
+    protected function casts(): array
     {
-        return $this->hasMany(EventContribution::class);
+        return [
+            'is_active' => 'boolean',
+            'active_until' => 'datetime',
+        ];
     }
 
-    public function donations()
+    public function eventDetail(): HasOne
     {
-        return $this->hasMany(EventDonation::class);
-    }
-
-    public function spendings()
-    {
-        return $this->hasMany(EventSpending::class);
+        return $this->hasOne(EventDetail::class);
     }
 }

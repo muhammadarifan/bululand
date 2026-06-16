@@ -5,9 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class EventContribution extends Model
+class EventMoneyTransaction extends Model
 {
-    protected $fillable = ['event_id', 'house_id', 'amount', 'attachment'];
+    protected $fillable = [
+        'event_id',
+        'house_id',
+        'description',
+        'type',
+        'category',
+        'amount',
+        'attachment',
+    ];
 
     public function event(): BelongsTo
     {

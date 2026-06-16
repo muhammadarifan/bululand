@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_galleries', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->foreignId('event_id')->constrained()->onDelete('cascade');
-            $table->;
-            $table->timestamps();
+        Schema::table('events', function (Blueprint $table) {
+            $table->string('subdomain')->unique()->after('name');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_galleries');
+        Schema::table('events', function (Blueprint $table) {
+            $table->dropColumn('subdomain');
+        });
     }
 };
