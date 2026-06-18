@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->string('subdomain')->unique()->after('name');
+            $table->string('subdomain')->unique()->after('name')->default('');
         });
     }
 
