@@ -37,13 +37,22 @@ class EventMoneyTransactionResource extends Resource
                     ->label('Event')
                     ->required()
                     ->searchable()
+                    ->columnSpanFull()
                     ->relationship('event', 'name'),
+
+                TextInput::make('donor_name')
+                    ->label('Donor Name')
+                    ->maxLength(255)
+                    ->reactive()
+                    ->required(fn(Get $get): bool => blank($get('house_id'))),
 
                 Select::make('house_id')
                     ->label('House')
+                    ->reactive()
                     ->searchable()
                     ->relationship('house', 'code')
                     ->nullable()
+                    ->required(fn(Get $get): bool => blank($get('donor_name')) || $get('category') === 'contribution')
                     ->createOptionForm([
                         TextInput::make('code')
                             ->label('House Code')
@@ -123,6 +132,8 @@ class EventMoneyTransactionResource extends Resource
                     ->label('Event'),
                 TextEntry::make('house.code')
                     ->label('House'),
+                TextEntry::make('donor_name')
+                    ->label('Donor Name'),
                 TextEntry::make('description'),
                 TextEntry::make('type')
                     ->badge()
@@ -155,6 +166,11 @@ class EventMoneyTransactionResource extends Resource
                 TextColumn::make('house.code')
                     ->label('House')
                     ->searchable(),
+
+                TextColumn::make('donor_name')
+                    ->label('Donor Name')
+                    ->searchable()
+                    ->limit(25),
 
                 TextColumn::make('description')
                     ->searchable()

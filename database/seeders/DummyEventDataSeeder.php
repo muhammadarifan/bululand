@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\EventDetail;
-use App\Models\EventContribution;
-use App\Models\EventGallery;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
 use App\Models\Post;
@@ -33,7 +31,7 @@ class DummyEventDataSeeder extends Seeder
 
             // ─── 2. Event Dummy (id=2) ───
             $event = Event::updateOrCreate(
-                ['id' => 2],
+                ['id' => 1],
                 [
                     'name'        => 'Dummy',
                     'subdomain'   => 'dummy',
@@ -46,6 +44,7 @@ class DummyEventDataSeeder extends Seeder
             EventDetail::updateOrCreate(
                 ['event_id' => $event->id],
                 [
+                    'contribution_fee' => 50000,
                     'logo'           => 'https://placehold.co/200x200?text=Logo',
                     'favicon'        => 'https://placehold.co/32x32?text=F',
                     'hero_image'     => 'https://placehold.co/1920x1080?text=Hero+Dummy',
@@ -54,57 +53,20 @@ class DummyEventDataSeeder extends Seeder
                     'about_title'    => 'Tentang Event Dummy',
                     'about_content'  => 'Event Dummy adalah event percobaan yang dibuat untuk mengisi data secara acak pada seluruh tabel yang berelasi. Data yang ditampilkan bersifat simulasi dan tidak merepresentasikan data nyata.',
                     'youtube_url'    => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                    'contacts'       => json_encode([
+                    'contacts'       => [
                         ['name' => 'Panitia Dummy', 'phone' => '081234567890'],
-                        ['name' => 'Sekretaris', 'phone' => '081298765432'],
-                    ]),
+                        ['name' => 'Sekretaris', 'phone' => '081298765432']
+                    ],
                     'facebook_url'   => 'https://facebook.com/dummyevent',
                     'instagram_url'  => 'https://instagram.com/dummyevent',
                     'footer_text'    => '© 2026 Event Dummy. All rights reserved.',
                 ]
             );
 
-            // ─── 4. Event Contributions ───
+            // ─── 6. Event Money Transactions ───
             $amounts = [50000, 100000, 150000, 200000, 250000, 300000, 500000, 750000, 1000000];
             $houseValues = array_values($houses);
-
-            for ($i = 0; $i < 30; $i++) {
-                EventContribution::create([
-                    'event_id'    => $event->id,
-                    'house_id'    => $houseValues[array_rand($houseValues)]->id,
-                    'amount'      => $amounts[array_rand($amounts)],
-                    'attachment'  => rand(0, 1) ? 'contributions/attachment_' . ($i + 1) . '.jpg' : null,
-                ]);
-            }
-
-            // ─── 5. Event Galleries ───
-            $galleryTitles = [
-                'Opening Ceremony',
-                'Dekorasi Utama',
-                'Performa Tari Tradisional',
-                'Sesi Foto Bersama',
-                'Upacara Bendera',
-                'Lomba Tarik Tambang',
-                'Panggung Utama Malam Hari',
-                'Area Kuliner',
-                'Stand Pameran',
-                'Penutupan Acara',
-                'Kegiatan Relawan',
-                'Persiapan Acara',
-                'Suasana Pagi Hari',
-                'Pawai Keliling',
-                'Pembagian Hadiah',
-            ];
-
-            for ($i = 0; $i < 15; $i++) {
-                EventGallery::create([
-                    'event_id' => $event->id,
-                    'title'    => $galleryTitles[$i],
-                ]);
-            }
-
-            // ─── 6. Event Money Transactions ───
-            $categories     = ['Iuran Warga', 'Sponsor', 'Donasi', 'Penjualan Tiket', 'Pajak', 'Operasional', 'Darurat'];
+            $donorNames = ['Donatur Lepas', 'Yayasan Peduli', 'Komunitas Sahabat', 'Dermawan Nusantara', 'Corporation Pulse', 'Warga Dermawan', 'Sponsor Inspiratif'];
             $txDescriptions = [
                 'Pemasukan dari iuran warga',
                 'Sponsor dari PT Maju Jaya',
@@ -118,14 +80,27 @@ class DummyEventDataSeeder extends Seeder
                 'Pengembalian dana',
             ];
 
+            $inCategories = ['donation', 'contribution', 'sponsorship', 'ticket_sales', 'merchandise', 'others'];
+            $outCategories = ['consumption', 'administration', 'decoration', 'documentation', 'transport', 'venue_rental', 'sound_system', 'printing', 'others'];
+
             for ($i = 0; $i < 40; $i++) {
                 $type = rand(0, 1) ? 'in' : 'out';
+                $category = $type === 'in'
+                    ? $inCategories[array_rand($inCategories)]
+                    : $outCategories[array_rand($outCategories)];
+
+                // Rule: if category is 'contribution', house_id must be filled
+                // Rule: if house_id is null, donor_name must be filled
+                $includeHouse = ($category === 'contribution') ? true : (bool) rand(0, 1);
+                $includeName = $includeHouse ? (bool) rand(0, 1) : true;
+
                 EventMoneyTransaction::create([
                     'event_id'    => $event->id,
-                    'house_id'    => $houseValues[array_rand($houseValues)]->id,
+                    'house_id'    => $includeHouse ? $houseValues[array_rand($houseValues)]->id : null,
+                    'donor_name'  => $includeName ? $donorNames[array_rand($donorNames)] : null,
                     'description' => $txDescriptions[array_rand($txDescriptions)],
                     'type'        => $type,
-                    'category'    => $categories[array_rand($categories)],
+                    'category'    => $category,
                     'amount'      => $amounts[array_rand($amounts)],
                     'attachment'  => rand(0, 1) ? 'transactions/bukti_' . ($i + 1) . '.jpg' : null,
                 ]);

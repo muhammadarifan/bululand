@@ -11,4 +11,6 @@ Route::get('/', function () {
 //     Route::get('/', [EventController::class, 'show'])->name('events.show');
 // });
 
+Route::get('/{event}/transactions', [EventController::class, 'transactions'])->name('events.transactions');
+Route::get('/{event}/check-contribution', [EventController::class, 'checkContribution'])->name('events.check-contribution');
 Route::get('/{event}', [EventController::class, 'show'])->name('events.show');

@@ -22,6 +22,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -63,20 +64,31 @@ class EventResource extends Resource
                     ->columnSpanFull()
                     ->native(false),
 
-                Section::make('Event Detail')
+                Section::make('Event Detail - Contribution Fee')
+                    ->columnSpanFull()
+                    ->relationship('eventDetail')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('contribution_fee')
+                            ->label('Contribution Fee')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->placeholder('e.g. 50000')
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('Event Detail - General')
                     ->columnSpanFull()
                     ->relationship('eventDetail')
                     ->columns(2)
                     ->schema([
                         FileUpload::make('logo')
                             ->image()
-                            ->directory('events/logos')
-                            ->columnSpanFull(),
+                            ->directory('events/logos'),
 
                         FileUpload::make('favicon')
                             ->image()
-                            ->directory('events/favicons')
-                            ->columnSpanFull(),
+                            ->directory('events/favicons'),
 
                         FileUpload::make('hero_image')
                             ->image()
@@ -86,10 +98,12 @@ class EventResource extends Resource
                         TextInput::make('hero_title')
                             ->maxLength(255),
 
-                        Textarea::make('hero_subtitle'),
+                        TextInput::make('hero_subtitle')
+                            ->maxLength(255),
 
                         TextInput::make('about_title')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->columnSpanFull(),
 
                         RichEditor::make('about_content')
                             ->columnSpanFull(),
@@ -151,7 +165,10 @@ class EventResource extends Resource
                 TextColumn::make('subdomain')
                     ->searchable(),
 
-                TextColumn::make('is_active')
+                // IconColumn::make('is_active')
+                //     ->boolean()
+                //     ->label('Active'),
+                IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
 

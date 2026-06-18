@@ -9,6 +9,7 @@ class EventDetail extends Model
 {
     protected $fillable = [
         'event_id',
+        'contribution_fee',
         'logo',
         'favicon',
         'hero_image',
