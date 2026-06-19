@@ -7,9 +7,9 @@ use App\Services\Gowa\GowaSendMessageResponse;
 
 test('auto reply service membalas halo', function (): void {
     $payload = GowaWebhookPayload::from([
-        'chat_id' => 'chat-1',
-        'message' => [
+        'payload' => [
             'body' => 'halo',
+            'chat_id' => 'chat-1',
         ],
     ]);
 
@@ -48,11 +48,11 @@ test('auto reply service membalas halo', function (): void {
 
 test('auto reply service menjalankan pengkondisian balasan', function (): void {
     $payload = GowaWebhookPayload::from([
-        'chat_id' => 'chat-1',
-        'from' => '6281234567890',
-        'device' => 'device-1',
-        'message' => [
+        'device_id' => 'device-1',
+        'payload' => [
             'body' => 'Halo',
+            'chat_id' => 'chat-1',
+            'from' => '6281234567890',
         ],
     ]);
 
@@ -122,4 +122,44 @@ test('auto reply service menjalankan pengkondisian balasan', function (): void {
     ]);
 
     unset($GLOBALS['gowa_auto_reply']);
+});
+
+test('auto reply service menampilkan menu', function (): void {
+    $payload = GowaWebhookPayload::from([
+        'payload' => [
+            'body' => '/menu',
+            'chat_id' => 'chat-1',
+            'from' => '6281234567890',
+        ],
+    ]);
+
+    $sender = new class('http://gowa.test', 'admin', 'secret', 'device-1') extends GowaMessageSender
+    {
+        public array $sent = [];
+
+        public function sendTextTo(
+            string $phone,
+            string $message,
+            ?string $replyMessageId = null,
+            array $mentions = [],
+            ?bool $isForwarded = null,
+            ?int $duration = null,
+        ): GowaSendMessageResponse {
+            $this->sent[] = [
+                'phone' => $phone,
+                'message' => $message,
+            ];
+
+            return new GowaSendMessageResponse('message-sent', 'sent', []);
+        }
+    };
+
+    $service = new AutoReplyGowaWebhookService($sender);
+
+    $service->handle($payload);
+
+    expect($sender->sent)->toHaveCount(1);
+    expect($sender->sent[0]['message'])->toContain('MENU BOT GOWA');
+    expect($sender->sent[0]['message'])->toContain('Cek Iuran Event');
+    expect($sender->sent[0]['message'])->toContain('Laporan Keuangan');
 });

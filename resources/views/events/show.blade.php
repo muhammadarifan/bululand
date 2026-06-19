@@ -42,7 +42,7 @@ $balance = $totalIncome - $totalExpense;
             @if ($eventDetail && ($eventDetail->hero_image || $eventDetail->hero_title || $eventDetail->hero_subtitle))
             <section class="mb-8">
                 @if ($eventDetail->hero_image)
-                <div class="-mx-4 overflow-hidden sm:-mx-0 sm:rounded-xl">
+                <div class="-mx-4 overflow-hidden sm:mx-0 sm:rounded-xl">
                     <img src="{{ $eventDetail->hero_image }}" alt="{{ $event->name }}" class="w-full">
                 </div>
                 @endif

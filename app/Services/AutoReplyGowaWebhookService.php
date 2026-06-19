@@ -7,14 +7,16 @@ use App\Models\Event;
 use App\Models\EventContribution;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
-use App\Models\WhatsappWhitelist;
 use App\Services\Gowa\GowaMessageSender;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 use function data_get;
 
 class AutoReplyGowaWebhookService
 {
+    private const CACHE_PREFIX = 'gowa_menu_state_';
+
     public function __construct(private readonly GowaMessageSender $sender) {}
 
     public function handle(GowaWebhookPayload $payload): void
@@ -48,17 +50,22 @@ class AutoReplyGowaWebhookService
         $message = trim($message);
         $sender = $payload->sender();
 
-        Log::info('Auto reply for message', [
-            'message' => $message,
-            'sender' => $sender,
-        ]);
+        try {
+            Log::info('Auto reply for message', [
+                'message' => $message,
+                'sender' => $sender,
+            ]);
+        } catch (\RuntimeException) {
+            // Logging tidak tersedia (unit test)
+        }
 
         // Handle /menu command (membutuhkan sender)
         if ($sender !== null && strtolower($message) === '/menu') {
+            $this->clearUserState($sender);
             return $this->showMenu();
         }
 
-        // Handle menu selection (1, 2, 3) - membutuhkan sender
+        // Handle menu selection (membutuhkan sender)
         if ($sender !== null) {
             $menuReply = $this->handleMenuSelection($sender, $message);
 
@@ -78,10 +85,10 @@ class AutoReplyGowaWebhookService
     protected function showMenu(): string
     {
         return "╔═══ *MENU BOT GOWA* ═══╗\n\n"
-            . "1️⃣  *Cek Pembayaran Event*\n"
-            . "   Cek apakah kamu sudah membayar iuran event atau belum\n\n"
-            . "2️⃣  *Laporan Keuangan Event*\n"
-            . "   Lihat laporan pemasukan & pengeluaran event\n\n"
+            . "1️⃣  *Cek Iuran Event*\n"
+            . "   Pilih event & cek status iuran rumah\n\n"
+            . "2️⃣  *Laporan Keuangan*\n"
+            . "   Lihat laporan pemasukan & pengeluaran\n\n"
             . "3️⃣  *Kembali ke Menu Awal*\n\n"
             . "╚════════════════════╝\n\n"
             . "Balas dengan angka *1*, *2*, atau *3*";
@@ -89,117 +96,371 @@ class AutoReplyGowaWebhookService
 
     protected function handleMenuSelection(string $sender, string $body): ?string
     {
-        $activeEvent = Event::where('is_active', true)
-            ->where(function ($query) {
-                $query->whereNull('active_until')
-                    ->orWhere('active_until', '>=', now());
-            })
-            ->first();
+        // Check if user has an active state (waiting for input in a multi-step flow)
+        $state = $this->getUserState($sender);
 
-        if ($activeEvent === null) {
-            return null;
+        if ($state !== null) {
+            return $this->handleStateInput($sender, $state, $body);
         }
 
         return match ($body) {
-            '1' => $this->handleCheckPayment($sender, $activeEvent),
-            '2' => $this->handleFinancialReport($activeEvent),
+            '1' => $this->showEventList($sender),
+            '2' => $this->showFinancialSubmenu($sender),
             '3' => $this->showMenu(),
             default => null,
         };
     }
 
-    protected function handleCheckPayment(string $sender, Event $event): string
+    // ────────────────────────────────────────────
+    //  State Management (using Cache)
+    // ────────────────────────────────────────────
+
+    protected function getUserState(string $sender): ?array
     {
-        // Extract phone number from sender (format: 62812...@s.whatsapp.net)
-        $phone = $this->extractPhone($sender);
+        return Cache::get(self::CACHE_PREFIX . $sender);
+    }
 
-        // Try to find house by phone number in whitelist
-        $whitelist = WhatsappWhitelist::where('phone', $phone)->first();
+    protected function setUserState(string $sender, array $state): void
+    {
+        Cache::put(self::CACHE_PREFIX . $sender, $state, now()->addMinutes(30));
+    }
 
-        if ($whitelist === null) {
-            return "📱 *Nomor {$phone}* tidak terdaftar.\n\n"
-                . "Silahkan hubungi admin untuk mendaftarkan nomor WhatsApp kamu.\n\n"
+    protected function clearUserState(string $sender): void
+    {
+        Cache::forget(self::CACHE_PREFIX . $sender);
+    }
+
+    // ────────────────────────────────────────────
+    //  Cek Iuran Event – multi-step
+    // ────────────────────────────────────────────
+
+    protected function showEventList(string $sender): string
+    {
+        $events = Event::where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('active_until')
+                    ->orWhere('active_until', '>=', now());
+            })
+            ->get();
+
+        if ($events->isEmpty()) {
+            return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
                 . "Ketik */menu* untuk kembali ke menu utama.";
         }
 
-        // Check if there's a house with matching code/phone
-        $house = House::where('code', $phone)->first();
+        // Store state: user is selecting an event
+        $this->setUserState($sender, [
+            'step' => 'selecting_event',
+        ]);
 
-        // If no direct house code match, try to find by EventContribution house relation
+        $list = "╔═══ *DAFTAR EVENT* ═══╗\n\n"
+            . "Pilih event yang ingin dicek:\n\n";
+
+        foreach ($events as $index => $event) {
+            $num = $index + 1;
+            $list .= "{$num}️⃣  *{$event->name}*\n";
+        }
+
+        $list .= "\n╚════════════════════╝\n\n"
+            . "Balas dengan angka *1*";
+
+        if ($events->count() > 1) {
+            $list .= "–*{$events->count()}*";
+        }
+
+        $list .= " untuk memilih event.\n\n"
+            . "Ketik */menu* untuk kembali ke menu utama.";
+
+        return $list;
+    }
+
+    protected function handleStateInput(string $sender, array $state, string $body): ?string
+    {
+        return match ($state['step'] ?? null) {
+            'selecting_event' => $this->handleEventSelection($sender, $body),
+            'entering_house' => $this->handleHouseInput($sender, $state, $body),
+            'selecting_financial' => $this->handleFinancialSubmenuSelection($sender, $body),
+            default => null,
+        };
+    }
+
+    protected function handleEventSelection(string $sender, string $body): string
+    {
+        $events = Event::where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('active_until')
+                    ->orWhere('active_until', '>=', now());
+            })
+            ->get();
+
+        $index = ((int) $body) - 1;
+
+        if (! isset($events[$index])) {
+            return "❌ Pilihan tidak valid. Silakan pilih angka yang tersedia.\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        $event = $events[$index];
+
+        // Store selected event
+        $this->setUserState($sender, [
+            'step' => 'entering_house',
+            'event_id' => $event->id,
+            'event_name' => $event->name,
+        ]);
+
+        return "✅ Event *{$event->name}* dipilih.\n\n"
+            . "📝 Masukkan *nomor rumah* yang ingin dicek.\n"
+            . "Contoh: *H8*\n\n"
+            . "Ketik */menu* untuk membatalkan dan kembali ke menu utama.";
+    }
+
+    protected function handleHouseInput(string $sender, array $state, string $body): string
+    {
+        $houseCode = strtoupper(trim($body));
+        $eventId = $state['event_id'];
+        $eventName = $state['event_name'];
+
+        if ($houseCode === '') {
+            return "❌ Nomor rumah tidak boleh kosong.\n\n"
+                . "Masukkan nomor rumah yang valid (contoh: *H8*).\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        // Find house by code
+        $house = House::where('code', $houseCode)->first();
+
         if ($house === null) {
-            return "🏠 *Tidak ada rumah* yang terdaftar dengan nomor WhatsApp ini.\n\n"
-                . "Hubungi admin untuk informasi lebih lanjut.\n\n"
+            // Clear state so user can try again or go back to menu
+            $this->clearUserState($sender);
+
+            return "🏠 *Rumah {$houseCode}* tidak ditemukan.\n\n"
+                . "Silakan periksa kembali nomor rumah Anda.\n\n"
                 . "Ketik */menu* untuk kembali ke menu utama.";
         }
 
-        // Check contribution status
-        $contribution = EventContribution::where('event_id', $event->id)
+        // Get all contributions (payments) for this house in this event
+        $contributions = EventContribution::where('event_id', $eventId)
             ->where('house_id', $house->id)
-            ->first();
+            ->get();
 
-        if ($contribution === null) {
-            return "❌ *BELUM BAYAR*\n\n"
-                . "Rumah *{$house->code}* belum tercatat melakukan pembayaran untuk event *{$event->name}*.\n\n"
+        // Also get EventMoneyTransaction records for this house in this event (contribution category)
+        $transactions = EventMoneyTransaction::where('event_id', $eventId)
+            ->where('house_id', $house->id)
+            ->where('category', 'contribution')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $hasContributions = $contributions->count() > 0 || $transactions->count() > 0;
+
+        // Clear state after displaying result
+        $this->clearUserState($sender);
+
+        if (! $hasContributions) {
+            return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
+                . "📋 Event: *{$eventName}*\n"
+                . "🏠 Rumah: *{$houseCode}*\n\n"
+                . "━━━ *STATUS* ━━━\n"
+                . "❌ *BELUM LUNAS*\n\n"
+                . "Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
                 . "Segera lakukan pembayaran melalui admin.\n\n"
+                . "╚════════════════════════╝\n\n"
                 . "Ketik */menu* untuk kembali ke menu utama.";
         }
 
-        $amountFormatted = 'Rp ' . number_format($contribution->amount, 0, ',', '.');
+        $paidAmount = $contributions->sum('amount') + $transactions->sum('amount');
 
-        return "✅ *SUDAH BAYAR*\n\n"
-            . "🏠 Rumah: *{$house->code}*\n"
-            . "📋 Event: *{$event->name}*\n"
-            . "💰 Jumlah: *{$amountFormatted}*\n"
-            . "📅 Tanggal: *{$contribution->created_at->format('d/m/Y H:i')}*\n\n"
+        // Build transaction list
+        $transactionLines = '';
+        foreach ($transactions as $tx) {
+            $amountFormatted = 'Rp ' . number_format($tx->amount, 0, ',', '.');
+            $dateFormatted = $tx->created_at->format('d/m/Y');
+            $desc = $tx->description ? ' · ' . $tx->description : '';
+            $transactionLines .= "   • {$dateFormatted}{$desc} — *{$amountFormatted}*\n";
+        }
+
+        foreach ($contributions as $contrib) {
+            $amountFormatted = 'Rp ' . number_format($contrib->amount, 0, ',', '.');
+            $dateFormatted = $contrib->created_at->format('d/m/Y');
+            $transactionLines .= "   • {$dateFormatted} — *{$amountFormatted}*\n";
+        }
+
+        $paidFormatted = 'Rp ' . number_format($paidAmount, 0, ',', '.');
+
+        return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
+            . "📋 Event: *{$eventName}*\n"
+            . "🏠 Rumah: *{$houseCode}*\n\n"
+            . "━━━ *STATUS* ━━━\n"
+            . "✅ *LUNAS*\n\n"
+            . "━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
+            . "{$transactionLines}\n"
+            . "━━━ *TOTAL* ━━━\n"
+            . "💰 *{$paidFormatted}*\n\n"
             . "Terima kasih sudah melakukan pembayaran! ✅\n\n"
+            . "╚════════════════════════╝\n\n"
             . "Ketik */menu* untuk kembali ke menu utama.";
     }
 
-    protected function handleFinancialReport(Event $event): string
+    // ────────────────────────────────────────────
+    //  Laporan Keuangan – submenu
+    // ────────────────────────────────────────────
+
+    protected function showFinancialSubmenu(string $sender): string
     {
-        // Calculate total income (type = 'in')
-        $totalIncome = EventMoneyTransaction::where('event_id', $event->id)
-            ->where('type', 'in')
-            ->sum('amount');
+        // Store state: user is in financial submenu
+        $this->setUserState($sender, [
+            'step' => 'selecting_financial',
+        ]);
 
-        // Calculate total expense (type = 'out')
-        $totalExpense = EventMoneyTransaction::where('event_id', $event->id)
-            ->where('type', 'out')
-            ->sum('amount');
+        return "╔═══ *LAPORAN KEUANGAN* ═══╗\n\n"
+            . "Pilih laporan yang ingin dilihat:\n\n"
+            . "1️⃣  *Laporan Hari Ini*\n"
+            . "   Lihat transaksi hari ini\n\n"
+            . "2️⃣  *Laporan Keseluruhan Event*\n"
+            . "   Lihat ringkasan semua event\n\n"
+            . "3️⃣  *Kembali ke Menu Utama*\n\n"
+            . "╚════════════════════════╝\n\n"
+            . "Balas dengan angka *1*, *2*, atau *3*";
+    }
 
-        // Count transactions
-        $incomeCount = EventMoneyTransaction::where('event_id', $event->id)
-            ->where('type', 'in')
-            ->count();
+    protected function handleFinancialSubmenuSelection(string $sender, string $body): ?string
+    {
+        $this->clearUserState($sender);
 
-        $expenseCount = EventMoneyTransaction::where('event_id', $event->id)
-            ->where('type', 'out')
-            ->count();
+        return match ($body) {
+            '1' => $this->handleTodayReport(),
+            '2' => $this->handleOverallReport(),
+            '3' => $this->showMenu(),
+            default => null,
+        };
+    }
 
-        $balance = $totalIncome - $totalExpense;
+    protected function handleTodayReport(): string
+    {
+        $today = now()->startOfDay();
+        $tomorrow = now()->startOfDay()->addDay();
 
-        $incomeFormatted = 'Rp ' . number_format($totalIncome, 0, ',', '.');
-        $expenseFormatted = 'Rp ' . number_format($totalExpense, 0, ',', '.');
-        $balanceFormatted = 'Rp ' . number_format($balance, 0, ',', '.');
+        $events = Event::where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('active_until')
+                    ->orWhere('active_until', '>=', now());
+            })
+            ->get();
 
-        $report = "╔═══ *LAPORAN KEUANGAN* ═══╗\n\n"
-            . "📋 Event: *{$event->name}*\n\n"
-            . "━━━ *PEMASUKAN* ━━━\n"
-            . "💰 Total: *{$incomeFormatted}*\n"
-            . "📊 Transaksi: *{$incomeCount}* kali\n\n"
-            . "━━━ *PENGELUARAN* ━━━\n"
-            . "💸 Total: *{$expenseFormatted}*\n"
-            . "📊 Transaksi: *{$expenseCount}* kali\n\n"
-            . "━━━ *SALDO AKHIR* ━━━\n"
-            . "💵 *{$balanceFormatted}*\n\n";
+        if ($events->isEmpty()) {
+            return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
 
-        if ($balance < 0) {
-            $report .= "⚠️ *DEFISIT!* Pengeluaran melebihi pemasukan.\n\n";
-        } elseif ($balance > 0) {
-            $report .= "✅ *SURPLUS!* Keuangan dalam kondisi baik.\n\n";
+        $report = "╔═══ *LAPORAN HARI INI* ═══╗\n\n"
+            . "📅 Tanggal: *" . now()->format('d/m/Y') . "*\n\n";
+
+        foreach ($events as $event) {
+            $totalIncome = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'in')
+                ->whereBetween('created_at', [$today, $tomorrow])
+                ->sum('amount');
+
+            $totalExpense = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'out')
+                ->whereBetween('created_at', [$today, $tomorrow])
+                ->sum('amount');
+
+            $incomeCount = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'in')
+                ->whereBetween('created_at', [$today, $tomorrow])
+                ->count();
+
+            $expenseCount = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'out')
+                ->whereBetween('created_at', [$today, $tomorrow])
+                ->count();
+
+            $incomeFormatted = 'Rp ' . number_format($totalIncome, 0, ',', '.');
+            $expenseFormatted = 'Rp ' . number_format($totalExpense, 0, ',', '.');
+            $balance = $totalIncome - $totalExpense;
+            $balanceFormatted = 'Rp ' . number_format($balance, 0, ',', '.');
+
+            $report .= "━━━ *{$event->name}* ━━━\n"
+                . "💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
+                . "💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
+                . "💵 Saldo: *{$balanceFormatted}*\n\n";
         }
 
         $report .= "╚════════════════════════╝\n\n"
+            . "Ketik */menu* untuk kembali ke menu utama.";
+
+        return $report;
+    }
+
+    protected function handleOverallReport(): string
+    {
+        $events = Event::where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('active_until')
+                    ->orWhere('active_until', '>=', now());
+            })
+            ->get();
+
+        if ($events->isEmpty()) {
+            return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        $report = "╔═══ *LAPORAN KESELURUHAN EVENT* ═══╗\n\n";
+
+        $grandTotalIncome = 0;
+        $grandTotalExpense = 0;
+
+        foreach ($events as $event) {
+            $totalIncome = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'in')
+                ->sum('amount');
+
+            $totalExpense = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'out')
+                ->sum('amount');
+
+            $incomeCount = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'in')
+                ->count();
+
+            $expenseCount = EventMoneyTransaction::where('event_id', $event->id)
+                ->where('type', 'out')
+                ->count();
+
+            $incomeFormatted = 'Rp ' . number_format($totalIncome, 0, ',', '.');
+            $expenseFormatted = 'Rp ' . number_format($totalExpense, 0, ',', '.');
+            $balance = $totalIncome - $totalExpense;
+            $balanceFormatted = 'Rp ' . number_format($balance, 0, ',', '.');
+
+            $report .= "━━━ *{$event->name}* ━━━\n"
+                . "💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
+                . "💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
+                . "💵 Saldo: *{$balanceFormatted}*\n\n";
+
+            $grandTotalIncome += $totalIncome;
+            $grandTotalExpense += $totalExpense;
+        }
+
+        // Grand total
+        $grandBalance = $grandTotalIncome - $grandTotalExpense;
+        $grandIncomeFormatted = 'Rp ' . number_format($grandTotalIncome, 0, ',', '.');
+        $grandExpenseFormatted = 'Rp ' . number_format($grandTotalExpense, 0, ',', '.');
+        $grandBalanceFormatted = 'Rp ' . number_format($grandBalance, 0, ',', '.');
+
+        $report .= "━━━ *TOTAL KESELURUHAN* ━━━\n"
+            . "💰 Pemasukan: *{$grandIncomeFormatted}*\n"
+            . "💸 Pengeluaran: *{$grandExpenseFormatted}*\n"
+            . "💵 Saldo: *{$grandBalanceFormatted}*\n\n";
+
+        if ($grandBalance < 0) {
+            $report .= "⚠️ *DEFISIT!* Pengeluaran melebihi pemasukan.\n\n";
+        } elseif ($grandBalance > 0) {
+            $report .= "✅ *SURPLUS!* Keuangan dalam kondisi baik.\n\n";
+        }
+
+        $report .= "╚════════════════════════════╝\n\n"
             . "Ketik */menu* untuk kembali ke menu utama.";
 
         return $report;
