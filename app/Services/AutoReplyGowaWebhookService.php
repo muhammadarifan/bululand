@@ -44,6 +44,7 @@ class AutoReplyGowaWebhookService
         Log::info('Auto reply for message', [
             'message' => $message,
             'payload' => $payload,
+            'payload_data' => $payload->all(),
         ]);
 
         if (! is_array($message)) {
