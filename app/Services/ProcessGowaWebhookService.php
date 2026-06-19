@@ -96,14 +96,6 @@ final class ProcessGowaWebhookService
 
     private function process(GowaWebhookPayload $payload): void
     {
-        $payload->event();
-        $payload->device();
-        $payload->chatId();
-        $payload->sender();
-        $payload->pushName();
-        $payload->message();
-        $payload->timestamp();
-
         Log::info('Gowa webhook payload processed', [
             'payload' => $payload->all(),
         ]);

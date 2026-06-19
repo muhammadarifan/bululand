@@ -95,7 +95,7 @@ test('auto reply service menjalankan pengkondisian balasan', function (): void {
             $GLOBALS['gowa_auto_reply'] = [
                 $payload->sender(),
                 $payload->chatId(),
-                $payload->device(),
+                $payload->deviceId(),
                 $reply,
             ];
         }
