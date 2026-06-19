@@ -51,23 +51,21 @@ class AutoReplyGowaWebhookService
             return null;
         }
 
-        $body = data_get($message, 'body');
-
-        if (! is_string($body)) {
+        if (! is_string($message)) {
             return null;
         }
 
-        $body = trim($body);
+        $message = trim($message);
         $sender = $payload->sender();
 
         // Handle /menu command (membutuhkan sender)
-        if ($sender !== null && strtolower($body) === '/menu') {
+        if ($sender !== null && strtolower($message) === '/menu') {
             return $this->showMenu();
         }
 
         // Handle menu selection (1, 2, 3) - membutuhkan sender
         if ($sender !== null) {
-            $menuReply = $this->handleMenuSelection($sender, $body);
+            $menuReply = $this->handleMenuSelection($sender, $message);
 
             if ($menuReply !== null) {
                 return $menuReply;
@@ -75,7 +73,7 @@ class AutoReplyGowaWebhookService
         }
 
         // Fallback: sapa balik jika ada kata "halo"
-        if (str_contains(strtolower($body), 'halo')) {
+        if (str_contains(strtolower($message), 'halo')) {
             return 'Halo juga!';
         }
 
