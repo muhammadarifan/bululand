@@ -45,6 +45,13 @@ class GowaMessageSender
 
     public function sendText(GowaSendMessageRequest $request): GowaSendMessageResponse
     {
+        Log::info('Gowa message sender initialized', [
+            'base_url' => $this->baseUrl,
+            'username' => $this->username,
+            'password' => $this->password,
+            'device_id' => $this->deviceId,
+        ]);
+
         $http = Http::withHeaders($this->headers());
 
         if ($this->username !== null && $this->password !== null) {
