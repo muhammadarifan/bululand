@@ -41,10 +41,6 @@ class AutoReplyGowaWebhookService
     {
         $message = $payload->message();
 
-        if (! is_array($message)) {
-            return null;
-        }
-
         if (! is_string($message)) {
             return null;
         }
