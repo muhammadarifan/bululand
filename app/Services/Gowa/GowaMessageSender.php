@@ -4,6 +4,7 @@ namespace App\Services\Gowa;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class GowaMessageSender
@@ -26,6 +27,13 @@ class GowaMessageSender
         $username = Config::get('services.gowa.username');
         $password = Config::get('services.gowa.password');
         $deviceId = Config::get('services.gowa.device_id');
+
+        Log::info('Gowa message sender initialized', [
+            'base_url' => $baseUrl,
+            'username' => $username,
+            'password' => $password,
+            'device_id' => $deviceId,
+        ]);
 
         return new self(
             baseUrl: $baseUrl,
@@ -80,7 +88,7 @@ class GowaMessageSender
 
     private function url(string $path): string
     {
-        return rtrim($this->baseUrl, '/').'/'.ltrim($path, '/');
+        return rtrim($this->baseUrl, '/') . '/' . ltrim($path, '/');
     }
 
     private function normalizeRecipient(string $recipient): string
@@ -89,6 +97,6 @@ class GowaMessageSender
             return $recipient;
         }
 
-        return $recipient.'@s.whatsapp.net';
+        return $recipient . '@s.whatsapp.net';
     }
 }
