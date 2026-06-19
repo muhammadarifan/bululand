@@ -41,12 +41,6 @@ class AutoReplyGowaWebhookService
     {
         $message = $payload->message();
 
-        Log::info('Auto reply for message', [
-            'message' => $message,
-            'payload' => $payload,
-            'payload_data' => $payload->all(),
-        ]);
-
         if (! is_array($message)) {
             return null;
         }
@@ -57,6 +51,11 @@ class AutoReplyGowaWebhookService
 
         $message = trim($message);
         $sender = $payload->sender();
+
+        Log::info('Auto reply for message', [
+            'message' => $message,
+            'sender' => $sender,
+        ]);
 
         // Handle /menu command (membutuhkan sender)
         if ($sender !== null && strtolower($message) === '/menu') {
