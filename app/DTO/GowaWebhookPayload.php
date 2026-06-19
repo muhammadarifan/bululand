@@ -40,7 +40,7 @@ final class GowaWebhookPayload
 
     public function message(): mixed
     {
-        return data_get($this->payload, 'message');
+        return data_get($this->payload, 'body');
     }
 
     public function timestamp(): ?string
@@ -50,14 +50,16 @@ final class GowaWebhookPayload
 
     public function messageId(): ?string
     {
-        foreach ([
-            'message.id',
-            'message.message_id',
-            'message.messageId',
-            'messageId',
-            'message_id',
-            'id',
-        ] as $key) {
+        foreach (
+            [
+                'message.id',
+                'message.message_id',
+                'message.messageId',
+                'messageId',
+                'message_id',
+                'id',
+            ] as $key
+        ) {
             $value = data_get($this->payload, $key);
 
             if (is_scalar($value) && trim((string) $value) !== '') {
@@ -71,13 +73,13 @@ final class GowaWebhookPayload
             $this->chatId(),
             $this->sender(),
             $this->timestamp(),
-        ], static fn (?string $value): bool => $value !== null && $value !== '');
+        ], static fn(?string $value): bool => $value !== null && $value !== '');
 
         if ($fallback === []) {
             return null;
         }
 
-        return 'gowa-'.hash('sha256', implode('|', $fallback));
+        return 'gowa-' . hash('sha256', implode('|', $fallback));
     }
 
     public function all(): array
