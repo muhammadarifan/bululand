@@ -59,6 +59,15 @@ class AutoReplyGowaWebhookService
             // Logging tidak tersedia (unit test)
         }
 
+        // Handle shortcut: {eventDomain}.iuran.{codeRumah} (e.g., "test-event.iuran.H8")
+        if ($sender !== null) {
+            $shortcutReply = $this->handleShortcutIuran($sender, $message);
+
+            if ($shortcutReply !== null) {
+                return $shortcutReply;
+            }
+        }
+
         // Handle /menu command (membutuhkan sender)
         if ($sender !== null && strtolower($message) === '/menu') {
             $this->clearUserState($sender);
@@ -91,7 +100,9 @@ class AutoReplyGowaWebhookService
             . "   Lihat laporan pemasukan & pengeluaran\n\n"
             . "3️⃣  *Kembali ke Menu Awal*\n\n"
             . "╚════════════════════╝\n\n"
-            . "Balas dengan angka *1*, *2*, atau *3*";
+            . "Balas dengan angka *1*, *2*, atau *3*\n\n"
+            . "💡 *Shortcut:* ketik `{domain_event}.iuran.{nomor_rumah}`\n"
+            . "   Contoh: `test-event.iuran.H8`";
     }
 
     protected function handleMenuSelection(string $sender, string $body): ?string
@@ -128,6 +139,109 @@ class AutoReplyGowaWebhookService
     protected function clearUserState(string $sender): void
     {
         Cache::forget(self::CACHE_PREFIX . $sender);
+    }
+
+    // ────────────────────────────────────────────
+    //  Shortcut: {eventDomain}.iuran.{codeRumah}
+    // ────────────────────────────────────────────
+
+    protected function handleShortcutIuran(string $sender, string $message): ?string
+    {
+        // Format: {eventDomain}.iuran.{codeRumah}
+        // Example: "test-event.iuran.H8"
+        if (! preg_match('/^([a-zA-Z0-9_-]+)\.iuran\.([a-zA-Z0-9]+)$/', $message, $matches)) {
+            return null;
+        }
+
+        $eventDomain = $matches[1];
+        $houseCode = strtoupper($matches[2]);
+
+        // Find event by subdomain
+        $event = Event::where('subdomain', $eventDomain)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('active_until')
+                    ->orWhere('active_until', '>=', now());
+            })
+            ->first();
+
+        if ($event === null) {
+            return "❌ Event dengan domain *{$eventDomain}* tidak ditemukan.\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        // Find house by code
+        $house = House::where('code', $houseCode)->first();
+
+        if ($house === null) {
+            return "🏠 *Rumah {$houseCode}* tidak ditemukan.\n\n"
+                . "Silakan periksa kembali nomor rumah Anda.\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        return $this->buildIuranResult($event->name, $houseCode, $event->id, $house->id);
+    }
+
+    // ────────────────────────────────────────────
+    //  Helper: Build iuran result message
+    // ────────────────────────────────────────────
+
+    protected function buildIuranResult(string $eventName, string $houseCode, int $eventId, int $houseId): string
+    {
+        $contributions = EventContribution::where('event_id', $eventId)
+            ->where('house_id', $houseId)
+            ->get();
+
+        $transactions = EventMoneyTransaction::where('event_id', $eventId)
+            ->where('house_id', $houseId)
+            ->where('category', 'contribution')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $hasContributions = $contributions->count() > 0 || $transactions->count() > 0;
+
+        if (! $hasContributions) {
+            return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
+                . "📋 Event: *{$eventName}*\n"
+                . "🏠 Rumah: *{$houseCode}*\n\n"
+                . "━━━ *STATUS* ━━━\n"
+                . "❌ *BELUM LUNAS*\n\n"
+                . "Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
+                . "Segera lakukan pembayaran melalui admin.\n\n"
+                . "╚════════════════════════╝\n\n"
+                . "Ketik */menu* untuk kembali ke menu utama.";
+        }
+
+        $paidAmount = $contributions->sum('amount') + $transactions->sum('amount');
+
+        $transactionLines = '';
+        foreach ($transactions as $tx) {
+            $amountFormatted = 'Rp ' . number_format($tx->amount, 0, ',', '.');
+            $dateFormatted = $tx->created_at->format('d/m/Y');
+            $desc = $tx->description ? ' · ' . $tx->description : '';
+            $transactionLines .= "   • {$dateFormatted}{$desc} — *{$amountFormatted}*\n";
+        }
+
+        foreach ($contributions as $contrib) {
+            $amountFormatted = 'Rp ' . number_format($contrib->amount, 0, ',', '.');
+            $dateFormatted = $contrib->created_at->format('d/m/Y');
+            $transactionLines .= "   • {$dateFormatted} — *{$amountFormatted}*\n";
+        }
+
+        $paidFormatted = 'Rp ' . number_format($paidAmount, 0, ',', '.');
+
+        return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
+            . "📋 Event: *{$eventName}*\n"
+            . "🏠 Rumah: *{$houseCode}*\n\n"
+            . "━━━ *STATUS* ━━━\n"
+            . "✅ *LUNAS*\n\n"
+            . "━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
+            . "{$transactionLines}\n"
+            . "━━━ *TOTAL* ━━━\n"
+            . "💰 *{$paidFormatted}*\n\n"
+            . "Terima kasih sudah melakukan pembayaran! ✅\n\n"
+            . "╚════════════════════════╝\n\n"
+            . "Ketik */menu* untuk kembali ke menu utama.";
     }
 
     // ────────────────────────────────────────────
