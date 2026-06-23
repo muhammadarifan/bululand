@@ -418,7 +418,7 @@ $balance = $totalIncome - $totalExpense;
                             <span class="text-base font-semibold">{{ $event->name }}</span>
                         </div>
                         @if ($eventDetail && $eventDetail->footer_text)
-                        <p class="mt-3 text-sm leading-relaxed text-neutral-500">{{ $eventDetail->footer_text }}</p>
+                        <p class="mt-3 text-sm leading-relaxed text-neutral-500">{!! $eventDetail->footer_text !!}</p>
                         @endif
                     </div>
 
