@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTO\GowaWebhookPayload;
+use App\Models\AiChatLog;
 use App\Models\Event;
 use App\Models\EventContribution;
 use App\Models\EventMoneyTransaction;
@@ -16,8 +17,13 @@ use function data_get;
 class AutoReplyGowaWebhookService
 {
     private const CACHE_PREFIX = 'gowa_menu_state_';
+    private const RATE_LIMIT_CACHE_PREFIX = 'gowa_ai_rate_limit_';
+    private const GLOBAL_RATE_LIMIT_CACHE_KEY = 'gowa_ai_rate_limit_global';
 
-    public function __construct(private readonly GowaMessageSender $sender) {}
+    public function __construct(
+        private readonly GowaMessageSender $sender,
+        private readonly OpenRouterService $openRouter,
+    ) {}
 
     public function handle(GowaWebhookPayload $payload): void
     {
@@ -86,6 +92,11 @@ class AutoReplyGowaWebhookService
         // Fallback: sapa balik jika ada kata "halo"
         if (str_contains(strtolower($message), 'halo')) {
             return 'Halo juga!';
+        }
+
+        // AI Fallback via OpenRouter
+        if ($sender !== null) {
+            return $this->handleAiFallback($sender, $message);
         }
 
         return null;
@@ -588,6 +599,95 @@ class AutoReplyGowaWebhookService
         }
 
         return $sender;
+    }
+
+    // ────────────────────────────────────────────
+    //  AI Fallback via OpenRouter
+    // ────────────────────────────────────────────
+
+    protected function handleAiFallback(string $sender, string $message): ?string
+    {
+        // Check global rate limit
+        $globalCount = (int) Cache::get(self::GLOBAL_RATE_LIMIT_CACHE_KEY, 0);
+        $globalMax = config('openrouter.rate_limit.max_per_hour', 20);
+
+        if ($globalCount >= $globalMax) {
+            return "⚠️ Mohon maaf, fitur AI sedang sibuk. Silakan coba lagi nanti.\n\n"
+                . "Atau ketik */menu* untuk menggunakan menu bot.";
+        }
+
+        // Check per-user rate limit
+        $userCacheKey = self::RATE_LIMIT_CACHE_PREFIX . $sender;
+        $userCount = (int) Cache::get($userCacheKey, 0);
+        $userMax = config('openrouter.rate_limit.max_per_user_per_hour', 5);
+
+        if ($userCount >= $userMax) {
+            AiChatLog::create([
+                'sender' => $sender,
+                'user_message' => $message,
+                'ai_response' => null,
+                'model' => config('openrouter.default_model'),
+                'status' => 'rate_limited',
+                'metadata' => [
+                    'reason' => 'Per-user rate limit exceeded',
+                    'user_count' => $userCount,
+                    'user_max' => $userMax,
+                ],
+            ]);
+
+            return "⚠️ Anda telah mencapai batas percakapan AI. Silakan coba lagi nanti.\n\n"
+                . "Ketik */menu* untuk menggunakan menu bot.";
+        }
+
+        $systemPrompt = $this->buildAiSystemPrompt();
+
+        $response = $this->openRouter->chat(
+            message: $message,
+            systemPrompt: $systemPrompt,
+        );
+
+        // Increment counters (hanya jika request benar-benar terkirim)
+        if ($response !== null) {
+            $this->incrementRateLimitCounter(self::GLOBAL_RATE_LIMIT_CACHE_KEY, $globalCount);
+            $this->incrementRateLimitCounter($userCacheKey, $userCount);
+        }
+
+        // Log the AI interaction
+        AiChatLog::create([
+            'sender' => $sender,
+            'user_message' => $message,
+            'ai_response' => $response,
+            'model' => config('openrouter.default_model'),
+            'status' => $response !== null ? 'success' : 'failed',
+            'metadata' => [
+                'global_count' => $globalCount,
+                'user_count' => $userCount,
+            ],
+        ]);
+
+        return $response;
+    }
+
+    protected function buildAiSystemPrompt(): string
+    {
+        return "Kamu adalah asisten virtual bot WhatsApp untuk aplikasi 'Bululand' — "
+            . "aplikasi manajemen iuran dan keuangan untuk warga perumahan.\n\n"
+            . "Kamu menjawab dengan ramah, sopan, dan ringkas dalam Bahasa Indonesia. "
+            . "Maksimal 2-3 kalimat saja.\n\n"
+            . "Fitur yang tersedia di bot ini:\n"
+            . "- Cek status iuran event. Caranya: ketik format `{domain_event}.iuran.{nomor_rumah}`\n"
+            . "  Contoh: test-event.iuran.H8 (untuk cek iuran rumah H8 di event test-event)\n"
+            . "- Menu interaktif: ketik `/menu` untuk melihat menu lengkap\n"
+            . "- Laporan keuangan event (harian dan keseluruhan)\n\n"
+            . "Jika user bertanya di luar fitur tersebut, arahkan mereka ke /menu.\n"
+            . "Jangan pernah memberikan data palsu atau informasi yang tidak kamu ketahui.\n"
+            . "Gunakan gaya yang santai dan bersahabat.";
+    }
+
+    protected function incrementRateLimitCounter(string $key, int $currentCount): void
+    {
+        // Increment and set expiry to 1 hour from now
+        Cache::put($key, $currentCount + 1, now()->addHour());
     }
 
     protected function sendReply(GowaWebhookPayload $payload, string $reply): void
