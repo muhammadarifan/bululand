@@ -205,7 +205,17 @@ class EventMoneyTransactionResource extends Resource
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->modalWidth('xl'),
+                    ->modalWidth('xl')
+                    ->preserveFormDataWhenCreatingAnother([
+                        'event_id',
+                        'donor_name',
+                        'house_id',
+                        'description',
+                        'type',
+                        'category',
+                        'amount',
+                        'attachment',
+                    ]),
             ])
             ->actions([
                 EditAction::make()
