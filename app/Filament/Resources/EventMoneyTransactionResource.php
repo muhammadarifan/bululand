@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -217,6 +218,10 @@ class EventMoneyTransactionResource extends Resource
                         'amount',
                         'attachment',
                     ]),
+                Action::make('batchCreate')
+                    ->label('Create Batch House Contribution')
+                    ->icon('heroicon-o-document-plus')
+                    ->url(EventMoneyTransactionResource::getUrl('batch-create')),
             ])
             ->actions([
                 EditAction::make()

@@ -12,11 +12,6 @@ class ListEventMoneyTransactions extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('batchCreate')
-                ->label('Create Batch House Contribution')
-                ->icon('heroicon-o-document-plus')
-                ->url(EventMoneyTransactionResource::getUrl('batch-create')),
-        ];
+        return [];
     }
 }
