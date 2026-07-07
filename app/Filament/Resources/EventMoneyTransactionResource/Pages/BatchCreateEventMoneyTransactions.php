@@ -39,6 +39,7 @@ class BatchCreateEventMoneyTransactions extends Page
     public function form(Schema $schema): Schema
     {
         return $schema
+            ->statePath('data')
             ->components([
                 Select::make('event_id')
                     ->label('Event')
@@ -68,7 +69,7 @@ class BatchCreateEventMoneyTransactions extends Page
 
     public function create(): void
     {
-        $data = $this->form->getState();
+        $data = $this->form->getRawState();
 
         DB::transaction(function () use ($data) {
             foreach ($data['house_ids'] as $houseId) {
