@@ -47,14 +47,14 @@ class EventMoneyTransactionResource extends Resource
                     ->label('Donor Name')
                     ->maxLength(255)
                     ->reactive()
-                    ->required(fn(Get $get): bool => blank($get('house_id'))),
+                    ->required(fn (Get $get): bool => blank($get('house_id'))),
 
                 Select::make('house_id')
                     ->label('House')
                     ->reactive()
                     ->options(House::pluck('code', 'id'))
                     ->nullable()
-                    ->required(fn(Get $get): bool => blank($get('donor_name')) || $get('category') === 'contribution')
+                    ->required(fn (Get $get): bool => blank($get('donor_name')) || $get('category') === 'contribution')
                     ->createOptionForm([
                         TextInput::make('code')
                             ->label('House Code')
@@ -91,7 +91,7 @@ class EventMoneyTransactionResource extends Resource
                 Select::make('category')
                     ->required()
                     ->live()
-                    ->options(fn(Get $get): array => match ($get('type')) {
+                    ->options(fn (Get $get): array => match ($get('type')) {
                         'in' => [
                             'donation' => 'Donation',
                             'contribution' => 'Contribution',
@@ -139,11 +139,11 @@ class EventMoneyTransactionResource extends Resource
                 TextEntry::make('description'),
                 TextEntry::make('type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'in' => 'success',
                         'out' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'in' => 'Income',
                         'out' => 'Expense',
                     }),
@@ -180,11 +180,11 @@ class EventMoneyTransactionResource extends Resource
 
                 TextColumn::make('type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'in' => 'success',
                         'out' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'in' => 'Income',
                         'out' => 'Expense',
                     }),

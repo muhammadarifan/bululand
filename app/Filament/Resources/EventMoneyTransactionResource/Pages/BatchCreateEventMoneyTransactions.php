@@ -9,7 +9,6 @@ use App\Models\House;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Actions;
@@ -69,7 +68,7 @@ class BatchCreateEventMoneyTransactions extends Page
 
     public function create(): void
     {
-        $data = $this->form->getRawState();
+        $data = $this->form->getState();
 
         DB::transaction(function () use ($data) {
             foreach ($data['house_ids'] as $houseId) {
@@ -85,7 +84,7 @@ class BatchCreateEventMoneyTransactions extends Page
         });
 
         Notification::make()
-            ->title(count($data['house_ids']) . ' transactions created successfully')
+            ->title(count($data['house_ids']).' transactions created successfully')
             ->success()
             ->send();
 
