@@ -400,64 +400,84 @@ $balance = $totalIncome - $totalExpense;
         </script>
 
         {{-- Footer --}}
-        <footer class="border-t border-neutral-200 bg-neutral-50">
+        <footer class="border-t border-neutral-200 bg-white">
             <div class="px-4 py-8 sm:px-6">
-                <div class="flex flex-col gap-6 sm:grid sm:grid-cols-3">
-                    <div>
-                        <div class="flex items-center gap-3">
-                            @if ($eventDetail && $eventDetail->logo)
-                            <img src="{{ $eventDetail->logo }}" alt="{{ $event->name }} logo"
-                                class="h-8 w-8 rounded-full">
-                            @else
-                            <span class="grid h-8 w-8 place-items-center rounded-full bg-neutral-800 text-white">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" />
-                                </svg>
-                            </span>
-                            @endif
-                            <span class="text-base font-semibold">{{ $event->name }}</span>
-                        </div>
-                        @if ($eventDetail && $eventDetail->footer_text)
-                        <p class="mt-3 text-sm leading-relaxed text-neutral-500">{!! $eventDetail->footer_text !!}</p>
+
+                {{-- Brand & Description --}}
+                <div class="mb-6 text-center">
+                    <a href="{{ route('events.show', $event->subdomain) }}" class="inline-flex items-center gap-2">
+                        @if ($eventDetail && $eventDetail->logo)
+                        <img src="{{ $eventDetail->logo }}" alt="{{ $event->name }} logo" class="h-7 w-7 rounded-full">
+                        @else
+                        <span class="grid h-7 w-7 place-items-center rounded-full bg-neutral-800 text-white">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3L20.5 7.8V16.2L12 21L3.5 16.2V7.8L12 3Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                        @endif
+                        <span class="text-sm font-semibold tracking-tight text-neutral-800">{{ $event->name }}</span>
+                    </a>
+                </div>
+
+                {{-- Contact & Social --}}
+                <div class="mb-6 space-y-4 text-center text-sm text-neutral-500">
+
+                    @if ($eventDetail && $eventDetail->contacts)
+                    <div class="flex flex-wrap justify-center gap-x-6 gap-y-1">
+                        @foreach ($eventDetail->contacts as $contact)
+                        @if ($contact['name'] ?? $contact['phone'])
+                        <p>
+                            <span class="font-medium text-neutral-700">{{ $contact['name'] ?? '' }}:</span>
+                            {{ $contact['phone'] ?? '' }}
+                        </p>
+                        @endif
+                        @endforeach
+                    </div>
+                    @elseif ($eventDetail && ($eventDetail->contact_name || $eventDetail->contact_phone))
+                    <p>{{ $eventDetail->contact_name }}: {{ $eventDetail->contact_phone }}</p>
+                    @endif
+
+                    {{-- Social Media Icons --}}
+                    @if (($eventDetail && $eventDetail->facebook_url) || ($eventDetail && $eventDetail->instagram_url))
+                    <div class="flex items-center justify-center gap-3 pt-1">
+                        @if ($eventDetail && $eventDetail->facebook_url)
+                        <a href="{{ $eventDetail->facebook_url }}" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition hover:bg-neutral-800 hover:text-white active:scale-90"
+                            aria-label="Facebook">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                            </svg>
+                        </a>
+                        @endif
+                        @if ($eventDetail && $eventDetail->instagram_url)
+                        <a href="{{ $eventDetail->instagram_url }}" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition hover:bg-neutral-800 hover:text-white active:scale-90"
+                            aria-label="Instagram">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.11 2.525c.636-.247 1.363-.416 2.427-.465C8.88 2.013 9.235 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" />
+                            </svg>
+                        </a>
                         @endif
                     </div>
+                    @endif
+                </div>
 
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Navigasi</p>
-                        <div class="mt-3 space-y-2 text-sm text-neutral-500">
-                            <a href="#keuangan" class="block transition hover:text-neutral-800">Keuangan</a>
-                            <a href="#iuran" class="block transition hover:text-neutral-800">Iuran</a>
-                            @if ($posts->count() > 0)
-                            <a href="#post" class="block transition hover:text-neutral-800">Post</a>
-                            @endif
-                        </div>
-                    </div>
+                {{-- Footer Text / Copyright --}}
+                @if ($eventDetail && $eventDetail->footer_text)
+                <hr class="mb-5 border-neutral-100" />
+                <div class="text-center text-xs leading-relaxed text-neutral-400">
+                    {!! $eventDetail->footer_text !!}
+                </div>
+                @endif
 
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Kontak</p>
-                        <div class="mt-3 space-y-2 text-sm text-neutral-500">
-                            @if ($eventDetail && $eventDetail->contacts)
-                            @foreach ($eventDetail->contacts as $contact)
-                            @if ($contact['name'] ?? $contact['phone'])
-                            <p>{{ $contact['name'] ?? '' }}: {{ $contact['phone'] ?? '' }}</p>
-                            @endif
-                            @endforeach
-                            @elseif ($eventDetail && ($eventDetail->contact_name || $eventDetail->contact_phone))
-                            <p>{{ $eventDetail->contact_name }}: {{ $eventDetail->contact_phone }}</p>
-                            @endif
-
-                            @if ($eventDetail && $eventDetail->facebook_url)
-                            <a href="{{ $eventDetail->facebook_url }}" target="_blank"
-                                class="block transition hover:text-neutral-800">Facebook</a>
-                            @endif
-                            @if ($eventDetail && $eventDetail->instagram_url)
-                            <a href="{{ $eventDetail->instagram_url }}" target="_blank"
-                                class="block transition hover:text-neutral-800">Instagram</a>
-                            @endif
-
-                            <p class="pt-2 text-xs text-neutral-400">&copy; {{ date('Y') }} {{ $event->name }}</p>
-                        </div>
-                    </div>
+                {{-- Powered by --}}
+                <div class="mt-6 text-center">
+                    <p class="text-[11px] text-neutral-300">
+                        Powered by <a href="https://bululand.com" target="_blank" rel="noopener noreferrer"
+                            class="font-medium text-neutral-400 transition hover:text-neutral-600">Bululand</a>
+                    </p>
                 </div>
             </div>
         </footer>
