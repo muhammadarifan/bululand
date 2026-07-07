@@ -17,7 +17,7 @@ class BatchCreateEventMoneyTransactions extends Page
 {
     protected static string $resource = EventMoneyTransactionResource::class;
 
-    protected static string $view = 'filament.resources.event-money-transaction-resource.pages.batch-create-event-money-transactions';
+    protected string $view = 'filament.resources.event-money-transaction-resource.pages.batch-create-event-money-transactions';
 
     public ?array $data = [];
 
@@ -94,7 +94,7 @@ class BatchCreateEventMoneyTransactions extends Page
         });
 
         Notification::make()
-            ->title(count($data['house_ids']).' transactions created successfully')
+            ->title(count($data['house_ids']) . ' transactions created successfully')
             ->success()
             ->send();
 
