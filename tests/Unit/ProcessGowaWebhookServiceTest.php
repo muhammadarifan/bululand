@@ -2,7 +2,6 @@
 
 use App\DTO\GowaWebhookPayload;
 use App\Services\ProcessGowaWebhookService;
-use Illuminate\Support\Facades\Log;
 
 test('normalizePayload mengubah nested structure menjadi flat', function (): void {
     $nestedPayload = [
@@ -25,7 +24,7 @@ test('normalizePayload mengubah nested structure menjadi flat', function (): voi
     ];
 
     // Buat service menggunakan reflection untuk akses normalizePayload
-    $service = new ProcessGowaWebhookService();
+    $service = new ProcessGowaWebhookService;
     $reflection = new ReflectionMethod($service, 'normalizePayload');
     $normalized = $reflection->invoke($service, $nestedPayload);
 
@@ -64,7 +63,7 @@ test('normalizePayload mengembalikan flat payload apa adanya', function (): void
         ],
     ];
 
-    $service = new ProcessGowaWebhookService();
+    $service = new ProcessGowaWebhookService;
     $reflection = new ReflectionMethod($service, 'normalizePayload');
     $normalized = $reflection->invoke($service, $flatPayload);
 
@@ -89,7 +88,7 @@ test('nilai dari GowaWebhookPayload setelah normalisasi untuk nested payload', f
         ],
     ];
 
-    $service = new ProcessGowaWebhookService();
+    $service = new ProcessGowaWebhookService;
     $reflection = new ReflectionMethod($service, 'normalizePayload');
     $normalized = $reflection->invoke($service, $nestedPayload);
 

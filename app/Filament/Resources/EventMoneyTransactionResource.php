@@ -2,21 +2,23 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\EventMoneyTransactionResource\Pages\BatchCreateEventMoneyTransactions;
 use App\Filament\Resources\EventMoneyTransactionResource\Pages\ListEventMoneyTransactions;
 use App\Models\EventMoneyTransaction;
+use App\Models\House;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -44,7 +46,7 @@ class EventMoneyTransactionResource extends Resource
                     ->label('Donor Name')
                     ->maxLength(255)
                     ->reactive()
-                    ->required(fn(Get $get): bool => blank($get('house_id'))),
+                    ->required(fn (Get $get): bool => blank($get('house_id'))),
 
                 Select::make('house_id')
                     ->label('House')
@@ -52,7 +54,7 @@ class EventMoneyTransactionResource extends Resource
                     ->searchable()
                     ->relationship('house', 'code')
                     ->nullable()
-                    ->required(fn(Get $get): bool => blank($get('donor_name')) || $get('category') === 'contribution')
+                    ->required(fn (Get $get): bool => blank($get('donor_name')) || $get('category') === 'contribution')
                     ->createOptionForm([
                         TextInput::make('code')
                             ->label('House Code')
@@ -60,7 +62,7 @@ class EventMoneyTransactionResource extends Resource
                             ->maxLength(255),
                     ])
                     ->createOptionUsing(function (array $data): mixed {
-                        return \App\Models\House::create($data)->getKey();
+                        return House::create($data)->getKey();
                     }),
 
                 TextInput::make('description')
@@ -89,7 +91,7 @@ class EventMoneyTransactionResource extends Resource
                 Select::make('category')
                     ->required()
                     ->live()
-                    ->options(fn(Get $get): array => match ($get('type')) {
+                    ->options(fn (Get $get): array => match ($get('type')) {
                         'in' => [
                             'donation' => 'Donation',
                             'contribution' => 'Contribution',
@@ -137,11 +139,11 @@ class EventMoneyTransactionResource extends Resource
                 TextEntry::make('description'),
                 TextEntry::make('type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'in' => 'success',
                         'out' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'in' => 'Income',
                         'out' => 'Expense',
                     }),
@@ -178,11 +180,11 @@ class EventMoneyTransactionResource extends Resource
 
                 TextColumn::make('type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'in' => 'success',
                         'out' => 'danger',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'in' => 'Income',
                         'out' => 'Expense',
                     }),
@@ -233,6 +235,7 @@ class EventMoneyTransactionResource extends Resource
     {
         return [
             'index' => ListEventMoneyTransactions::route('/'),
+            'batch-create' => BatchCreateEventMoneyTransactions::route('/batch-create'),
         ];
     }
 }

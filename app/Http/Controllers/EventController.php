@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,12 +16,12 @@ class EventController extends Controller
     {
         $eventModel = Event::where('subdomain', $event)->first();
 
-        if (!$eventModel) {
+        if (! $eventModel) {
             abort(404, 'Event tidak ditemukan.');
         }
 
         // Check if the event is active
-        if (!$eventModel->is_active) {
+        if (! $eventModel->is_active) {
             abort(404, 'Event ini tidak aktif.');
         }
 
@@ -32,7 +33,7 @@ class EventController extends Controller
         $eventDetail = $eventModel->eventDetail;
 
         // Resolve file URLs from private storage
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
+        /** @var FilesystemAdapter $storage */
         $storage = Storage::disk('local');
         if ($eventDetail && $eventDetail->logo) {
             $eventDetail->logo = $storage->temporaryUrl($eventDetail->logo, 60);
@@ -99,11 +100,11 @@ class EventController extends Controller
     {
         $eventModel = Event::where('subdomain', $event)->first();
 
-        if (!$eventModel) {
+        if (! $eventModel) {
             abort(404, 'Event tidak ditemukan.');
         }
 
-        if (!$eventModel->is_active) {
+        if (! $eventModel->is_active) {
             abort(404, 'Event ini tidak aktif.');
         }
 
@@ -114,7 +115,7 @@ class EventController extends Controller
         $eventDetail = $eventModel->eventDetail;
 
         // Resolve file URLs from private storage
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
+        /** @var FilesystemAdapter $storage */
         $storage = Storage::disk('local');
         if ($eventDetail && $eventDetail->logo) {
             $eventDetail->logo = $storage->temporaryUrl($eventDetail->logo, 60);
@@ -154,7 +155,7 @@ class EventController extends Controller
         $searchHouse = $request->query('search_house', '');
         $houseResult = [];
         if ($searchHouse !== '') {
-            $house = House::whereRaw('LOWER(code) LIKE ?', ['%' . Str::lower($searchHouse) . '%'])->first();
+            $house = House::whereRaw('LOWER(code) LIKE ?', ['%'.Str::lower($searchHouse).'%'])->first();
 
             if ($house) {
                 $transactions = EventMoneyTransaction::where('event_id', $eventModel->id)
@@ -194,11 +195,11 @@ class EventController extends Controller
     {
         $eventModel = Event::where('subdomain', $event)->first();
 
-        if (!$eventModel) {
+        if (! $eventModel) {
             return response()->json(['error' => 'Event tidak ditemukan.'], 404);
         }
 
-        if (!$eventModel->is_active) {
+        if (! $eventModel->is_active) {
             return response()->json(['error' => 'Event ini tidak aktif.'], 404);
         }
 
@@ -216,10 +217,10 @@ class EventController extends Controller
         $searchLower = Str::lower($searchQuery);
         $house = House::whereRaw('LOWER(code) = ?', [$searchLower])->first();
 
-        if (!$house) {
+        if (! $house) {
             return response()->json([
                 'found' => false,
-                'message' => 'Rumah dengan kode "' . $searchQuery . '" tidak ditemukan.',
+                'message' => 'Rumah dengan kode "'.$searchQuery.'" tidak ditemukan.',
             ], 200);
         }
 

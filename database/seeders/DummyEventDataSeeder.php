@@ -20,7 +20,7 @@ class DummyEventDataSeeder extends Seeder
             $houseCodes = [];
             foreach (range('A', 'I') as $letter) {
                 for ($i = 1; $i <= 10; $i++) {
-                    $houseCodes[] = $letter . $i;
+                    $houseCodes[] = $letter.$i;
                 }
             }
 
@@ -33,9 +33,9 @@ class DummyEventDataSeeder extends Seeder
             $event = Event::updateOrCreate(
                 ['id' => 1],
                 [
-                    'name'        => 'Dummy',
-                    'subdomain'   => 'dummy',
-                    'is_active'   => true,
+                    'name' => 'Dummy',
+                    'subdomain' => 'dummy',
+                    'is_active' => true,
                     'active_until' => now()->addYear(),
                 ]
             );
@@ -45,21 +45,21 @@ class DummyEventDataSeeder extends Seeder
                 ['event_id' => $event->id],
                 [
                     'contribution_fee' => 50000,
-                    'logo'           => 'https://placehold.co/200x200?text=Logo',
-                    'favicon'        => 'https://placehold.co/32x32?text=F',
-                    'hero_image'     => 'https://placehold.co/1920x1080?text=Hero+Dummy',
-                    'hero_title'     => 'Selamat Datang di Event Dummy',
-                    'hero_subtitle'  => 'Event ini dibuat untuk keperluan testing dan demonstrasi fitur.',
-                    'about_title'    => 'Tentang Event Dummy',
-                    'about_content'  => 'Event Dummy adalah event percobaan yang dibuat untuk mengisi data secara acak pada seluruh tabel yang berelasi. Data yang ditampilkan bersifat simulasi dan tidak merepresentasikan data nyata.',
-                    'youtube_url'    => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                    'contacts'       => [
+                    'logo' => 'https://placehold.co/200x200?text=Logo',
+                    'favicon' => 'https://placehold.co/32x32?text=F',
+                    'hero_image' => 'https://placehold.co/1920x1080?text=Hero+Dummy',
+                    'hero_title' => 'Selamat Datang di Event Dummy',
+                    'hero_subtitle' => 'Event ini dibuat untuk keperluan testing dan demonstrasi fitur.',
+                    'about_title' => 'Tentang Event Dummy',
+                    'about_content' => 'Event Dummy adalah event percobaan yang dibuat untuk mengisi data secara acak pada seluruh tabel yang berelasi. Data yang ditampilkan bersifat simulasi dan tidak merepresentasikan data nyata.',
+                    'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'contacts' => [
                         ['name' => 'Panitia Dummy', 'phone' => '081234567890'],
-                        ['name' => 'Sekretaris', 'phone' => '081298765432']
+                        ['name' => 'Sekretaris', 'phone' => '081298765432'],
                     ],
-                    'facebook_url'   => 'https://facebook.com/dummyevent',
-                    'instagram_url'  => 'https://instagram.com/dummyevent',
-                    'footer_text'    => '© 2026 Event Dummy. All rights reserved.',
+                    'facebook_url' => 'https://facebook.com/dummyevent',
+                    'instagram_url' => 'https://instagram.com/dummyevent',
+                    'footer_text' => '© 2026 Event Dummy. All rights reserved.',
                 ]
             );
 
@@ -95,20 +95,20 @@ class DummyEventDataSeeder extends Seeder
                 $includeName = $includeHouse ? (bool) rand(0, 1) : true;
 
                 EventMoneyTransaction::create([
-                    'event_id'    => $event->id,
-                    'house_id'    => $includeHouse ? $houseValues[array_rand($houseValues)]->id : null,
-                    'donor_name'  => $includeName ? $donorNames[array_rand($donorNames)] : null,
+                    'event_id' => $event->id,
+                    'house_id' => $includeHouse ? $houseValues[array_rand($houseValues)]->id : null,
+                    'donor_name' => $includeName ? $donorNames[array_rand($donorNames)] : null,
                     'description' => $txDescriptions[array_rand($txDescriptions)],
-                    'type'        => $type,
-                    'category'    => $category,
-                    'amount'      => $amounts[array_rand($amounts)],
-                    'attachment'  => rand(0, 1) ? 'transactions/bukti_' . ($i + 1) . '.jpg' : null,
+                    'type' => $type,
+                    'category' => $category,
+                    'amount' => $amounts[array_rand($amounts)],
+                    'attachment' => rand(0, 1) ? 'transactions/bukti_'.($i + 1).'.jpg' : null,
                 ]);
             }
 
             // ─── 7. Posts ───
-            $postTypes  = ['announcement', 'news', 'update', 'article'];
-            $postsData  = [
+            $postTypes = ['announcement', 'news', 'update', 'article'];
+            $postsData = [
                 ['title' => 'Pengumuman Pembukaan Event Dummy', 'content' => 'Kami dengan bangga mengumumkan bahwa event Dummy akan segera dimulai. Silakan hadir tepat waktu.'],
                 ['title' => 'Jadwal Acara Lengkap', 'content' => 'Berikut adalah jadwal lengkap acara event Dummy: Pembukaan pada pukul 08.00, lomba pada pukul 10.00, dan penutupan pada pukul 17.00.'],
                 ['title' => 'Hasil Lomba Hari Pertama', 'content' => 'Selamat kepada para pemenang lomba hari pertama! Berikut adalah daftar lengkap pemenang dari setiap kategori lomba.'],
@@ -123,12 +123,12 @@ class DummyEventDataSeeder extends Seeder
 
             foreach ($postsData as $idx => $post) {
                 Post::create([
-                    'event_id'     => $event->id,
-                    'title'        => $post['title'],
-                    'content'      => $post['content'],
-                    'type'         => $postTypes[array_rand($postTypes)],
+                    'event_id' => $event->id,
+                    'title' => $post['title'],
+                    'content' => $post['content'],
+                    'type' => $postTypes[array_rand($postTypes)],
                     'published_at' => now()->subDays(rand(0, 30)),
-                    'thumbnail'    => rand(0, 1) ? 'posts/thumbnail_' . ($idx + 1) . '.jpg' : null,
+                    'thumbnail' => rand(0, 1) ? 'posts/thumbnail_'.($idx + 1).'.jpg' : null,
                 ]);
             }
         });

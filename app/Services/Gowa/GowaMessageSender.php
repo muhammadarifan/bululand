@@ -95,7 +95,7 @@ class GowaMessageSender
 
     private function url(string $path): string
     {
-        return rtrim($this->baseUrl, '/') . '/' . ltrim($path, '/');
+        return rtrim($this->baseUrl, '/').'/'.ltrim($path, '/');
     }
 
     private function normalizeRecipient(string $recipient): string
@@ -104,6 +104,6 @@ class GowaMessageSender
             return $recipient;
         }
 
-        return $recipient . '@s.whatsapp.net';
+        return $recipient.'@s.whatsapp.net';
     }
 }

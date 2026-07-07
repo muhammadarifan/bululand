@@ -12,12 +12,12 @@ use App\Services\Gowa\GowaMessageSender;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-use function data_get;
-
 class AutoReplyGowaWebhookService
 {
     private const CACHE_PREFIX = 'gowa_menu_state_';
+
     private const RATE_LIMIT_CACHE_PREFIX = 'gowa_ai_rate_limit_';
+
     private const GLOBAL_RATE_LIMIT_CACHE_KEY = 'gowa_ai_rate_limit_global';
 
     public function __construct(
@@ -77,6 +77,7 @@ class AutoReplyGowaWebhookService
         // Handle /menu command (membutuhkan sender)
         if ($sender !== null && strtolower($message) === '/menu') {
             $this->clearUserState($sender);
+
             return $this->showMenu();
         }
 
@@ -105,15 +106,15 @@ class AutoReplyGowaWebhookService
     protected function showMenu(): string
     {
         return "╔═══ *MENU BOT GOWA* ═══╗\n\n"
-            . "1️⃣  *Cek Iuran Event*\n"
-            . "   Pilih event & cek status iuran rumah\n\n"
-            . "2️⃣  *Laporan Keuangan*\n"
-            . "   Lihat laporan pemasukan & pengeluaran\n\n"
-            . "3️⃣  *Kembali ke Menu Awal*\n\n"
-            . "╚════════════════════╝\n\n"
-            . "Balas dengan angka *1*, *2*, atau *3*\n\n"
-            . "💡 *Shortcut:* ketik `{domain_event}.iuran.{nomor_rumah}`\n"
-            . "   Contoh: `test-event.iuran.H8`";
+            ."1️⃣  *Cek Iuran Event*\n"
+            ."   Pilih event & cek status iuran rumah\n\n"
+            ."2️⃣  *Laporan Keuangan*\n"
+            ."   Lihat laporan pemasukan & pengeluaran\n\n"
+            ."3️⃣  *Kembali ke Menu Awal*\n\n"
+            ."╚════════════════════╝\n\n"
+            ."Balas dengan angka *1*, *2*, atau *3*\n\n"
+            ."💡 *Shortcut:* ketik `{domain_event}.iuran.{nomor_rumah}`\n"
+            .'   Contoh: `test-event.iuran.H8`';
     }
 
     protected function handleMenuSelection(string $sender, string $body): ?string
@@ -139,17 +140,17 @@ class AutoReplyGowaWebhookService
 
     protected function getUserState(string $sender): ?array
     {
-        return Cache::get(self::CACHE_PREFIX . $sender);
+        return Cache::get(self::CACHE_PREFIX.$sender);
     }
 
     protected function setUserState(string $sender, array $state): void
     {
-        Cache::put(self::CACHE_PREFIX . $sender, $state, now()->addMinutes(30));
+        Cache::put(self::CACHE_PREFIX.$sender, $state, now()->addMinutes(30));
     }
 
     protected function clearUserState(string $sender): void
     {
-        Cache::forget(self::CACHE_PREFIX . $sender);
+        Cache::forget(self::CACHE_PREFIX.$sender);
     }
 
     // ────────────────────────────────────────────
@@ -178,7 +179,7 @@ class AutoReplyGowaWebhookService
 
         if ($event === null) {
             return "❌ Event dengan domain *{$eventDomain}* tidak ditemukan.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         // Find house by code
@@ -186,8 +187,8 @@ class AutoReplyGowaWebhookService
 
         if ($house === null) {
             return "🏠 *Rumah {$houseCode}* tidak ditemukan.\n\n"
-                . "Silakan periksa kembali nomor rumah Anda.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                ."Silakan periksa kembali nomor rumah Anda.\n\n"
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         return $this->buildIuranResult($event->name, $houseCode, $event->id, $house->id);
@@ -213,46 +214,46 @@ class AutoReplyGowaWebhookService
 
         if (! $hasContributions) {
             return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
-                . "📋 Event: *{$eventName}*\n"
-                . "🏠 Rumah: *{$houseCode}*\n\n"
-                . "━━━ *STATUS* ━━━\n"
-                . "❌ *BELUM LUNAS*\n\n"
-                . "Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
-                . "Segera lakukan pembayaran melalui admin.\n\n"
-                . "╚════════════════════════╝\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                ."📋 Event: *{$eventName}*\n"
+                ."🏠 Rumah: *{$houseCode}*\n\n"
+                ."━━━ *STATUS* ━━━\n"
+                ."❌ *BELUM LUNAS*\n\n"
+                ."Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
+                ."Segera lakukan pembayaran melalui admin.\n\n"
+                ."╚════════════════════════╝\n\n"
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         $paidAmount = $contributions->sum('amount') + $transactions->sum('amount');
 
         $transactionLines = '';
         foreach ($transactions as $tx) {
-            $amountFormatted = 'Rp ' . number_format($tx->amount, 0, ',', '.');
+            $amountFormatted = 'Rp '.number_format($tx->amount, 0, ',', '.');
             $dateFormatted = $tx->created_at->format('d/m/Y');
-            $desc = $tx->description ? ' · ' . $tx->description : '';
+            $desc = $tx->description ? ' · '.$tx->description : '';
             $transactionLines .= "   • {$dateFormatted}{$desc} — *{$amountFormatted}*\n";
         }
 
         foreach ($contributions as $contrib) {
-            $amountFormatted = 'Rp ' . number_format($contrib->amount, 0, ',', '.');
+            $amountFormatted = 'Rp '.number_format($contrib->amount, 0, ',', '.');
             $dateFormatted = $contrib->created_at->format('d/m/Y');
             $transactionLines .= "   • {$dateFormatted} — *{$amountFormatted}*\n";
         }
 
-        $paidFormatted = 'Rp ' . number_format($paidAmount, 0, ',', '.');
+        $paidFormatted = 'Rp '.number_format($paidAmount, 0, ',', '.');
 
         return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
-            . "📋 Event: *{$eventName}*\n"
-            . "🏠 Rumah: *{$houseCode}*\n\n"
-            . "━━━ *STATUS* ━━━\n"
-            . "✅ *LUNAS*\n\n"
-            . "━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
-            . "{$transactionLines}\n"
-            . "━━━ *TOTAL* ━━━\n"
-            . "💰 *{$paidFormatted}*\n\n"
-            . "Terima kasih sudah melakukan pembayaran! ✅\n\n"
-            . "╚════════════════════════╝\n\n"
-            . "Ketik */menu* untuk kembali ke menu utama.";
+            ."📋 Event: *{$eventName}*\n"
+            ."🏠 Rumah: *{$houseCode}*\n\n"
+            ."━━━ *STATUS* ━━━\n"
+            ."✅ *LUNAS*\n\n"
+            ."━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
+            ."{$transactionLines}\n"
+            ."━━━ *TOTAL* ━━━\n"
+            ."💰 *{$paidFormatted}*\n\n"
+            ."Terima kasih sudah melakukan pembayaran! ✅\n\n"
+            ."╚════════════════════════╝\n\n"
+            .'Ketik */menu* untuk kembali ke menu utama.';
     }
 
     // ────────────────────────────────────────────
@@ -270,7 +271,7 @@ class AutoReplyGowaWebhookService
 
         if ($events->isEmpty()) {
             return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         // Store state: user is selecting an event
@@ -279,7 +280,7 @@ class AutoReplyGowaWebhookService
         ]);
 
         $list = "╔═══ *DAFTAR EVENT* ═══╗\n\n"
-            . "Pilih event yang ingin dicek:\n\n";
+            ."Pilih event yang ingin dicek:\n\n";
 
         foreach ($events as $index => $event) {
             $num = $index + 1;
@@ -287,14 +288,14 @@ class AutoReplyGowaWebhookService
         }
 
         $list .= "\n╚════════════════════╝\n\n"
-            . "Balas dengan angka *1*";
+            .'Balas dengan angka *1*';
 
         if ($events->count() > 1) {
             $list .= "–*{$events->count()}*";
         }
 
         $list .= " untuk memilih event.\n\n"
-            . "Ketik */menu* untuk kembali ke menu utama.";
+            .'Ketik */menu* untuk kembali ke menu utama.';
 
         return $list;
     }
@@ -322,7 +323,7 @@ class AutoReplyGowaWebhookService
 
         if (! isset($events[$index])) {
             return "❌ Pilihan tidak valid. Silakan pilih angka yang tersedia.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         $event = $events[$index];
@@ -335,9 +336,9 @@ class AutoReplyGowaWebhookService
         ]);
 
         return "✅ Event *{$event->name}* dipilih.\n\n"
-            . "📝 Masukkan *nomor rumah* yang ingin dicek.\n"
-            . "Contoh: *H8*\n\n"
-            . "Ketik */menu* untuk membatalkan dan kembali ke menu utama.";
+            ."📝 Masukkan *nomor rumah* yang ingin dicek.\n"
+            ."Contoh: *H8*\n\n"
+            .'Ketik */menu* untuk membatalkan dan kembali ke menu utama.';
     }
 
     protected function handleHouseInput(string $sender, array $state, string $body): string
@@ -348,8 +349,8 @@ class AutoReplyGowaWebhookService
 
         if ($houseCode === '') {
             return "❌ Nomor rumah tidak boleh kosong.\n\n"
-                . "Masukkan nomor rumah yang valid (contoh: *H8*).\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                ."Masukkan nomor rumah yang valid (contoh: *H8*).\n\n"
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         // Find house by code
@@ -360,8 +361,8 @@ class AutoReplyGowaWebhookService
             $this->clearUserState($sender);
 
             return "🏠 *Rumah {$houseCode}* tidak ditemukan.\n\n"
-                . "Silakan periksa kembali nomor rumah Anda.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                ."Silakan periksa kembali nomor rumah Anda.\n\n"
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         // Get all contributions (payments) for this house in this event
@@ -383,14 +384,14 @@ class AutoReplyGowaWebhookService
 
         if (! $hasContributions) {
             return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
-                . "📋 Event: *{$eventName}*\n"
-                . "🏠 Rumah: *{$houseCode}*\n\n"
-                . "━━━ *STATUS* ━━━\n"
-                . "❌ *BELUM LUNAS*\n\n"
-                . "Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
-                . "Segera lakukan pembayaran melalui admin.\n\n"
-                . "╚════════════════════════╝\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                ."📋 Event: *{$eventName}*\n"
+                ."🏠 Rumah: *{$houseCode}*\n\n"
+                ."━━━ *STATUS* ━━━\n"
+                ."❌ *BELUM LUNAS*\n\n"
+                ."Belum ada pembayaran iuran yang tercatat untuk rumah *{$houseCode}* di event *{$eventName}*.\n\n"
+                ."Segera lakukan pembayaran melalui admin.\n\n"
+                ."╚════════════════════════╝\n\n"
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         $paidAmount = $contributions->sum('amount') + $transactions->sum('amount');
@@ -398,32 +399,32 @@ class AutoReplyGowaWebhookService
         // Build transaction list
         $transactionLines = '';
         foreach ($transactions as $tx) {
-            $amountFormatted = 'Rp ' . number_format($tx->amount, 0, ',', '.');
+            $amountFormatted = 'Rp '.number_format($tx->amount, 0, ',', '.');
             $dateFormatted = $tx->created_at->format('d/m/Y');
-            $desc = $tx->description ? ' · ' . $tx->description : '';
+            $desc = $tx->description ? ' · '.$tx->description : '';
             $transactionLines .= "   • {$dateFormatted}{$desc} — *{$amountFormatted}*\n";
         }
 
         foreach ($contributions as $contrib) {
-            $amountFormatted = 'Rp ' . number_format($contrib->amount, 0, ',', '.');
+            $amountFormatted = 'Rp '.number_format($contrib->amount, 0, ',', '.');
             $dateFormatted = $contrib->created_at->format('d/m/Y');
             $transactionLines .= "   • {$dateFormatted} — *{$amountFormatted}*\n";
         }
 
-        $paidFormatted = 'Rp ' . number_format($paidAmount, 0, ',', '.');
+        $paidFormatted = 'Rp '.number_format($paidAmount, 0, ',', '.');
 
         return "╔═══ *CEK IURAN EVENT* ═══╗\n\n"
-            . "📋 Event: *{$eventName}*\n"
-            . "🏠 Rumah: *{$houseCode}*\n\n"
-            . "━━━ *STATUS* ━━━\n"
-            . "✅ *LUNAS*\n\n"
-            . "━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
-            . "{$transactionLines}\n"
-            . "━━━ *TOTAL* ━━━\n"
-            . "💰 *{$paidFormatted}*\n\n"
-            . "Terima kasih sudah melakukan pembayaran! ✅\n\n"
-            . "╚════════════════════════╝\n\n"
-            . "Ketik */menu* untuk kembali ke menu utama.";
+            ."📋 Event: *{$eventName}*\n"
+            ."🏠 Rumah: *{$houseCode}*\n\n"
+            ."━━━ *STATUS* ━━━\n"
+            ."✅ *LUNAS*\n\n"
+            ."━━━ *RIWAYAT PEMBAYARAN* ━━━\n"
+            ."{$transactionLines}\n"
+            ."━━━ *TOTAL* ━━━\n"
+            ."💰 *{$paidFormatted}*\n\n"
+            ."Terima kasih sudah melakukan pembayaran! ✅\n\n"
+            ."╚════════════════════════╝\n\n"
+            .'Ketik */menu* untuk kembali ke menu utama.';
     }
 
     // ────────────────────────────────────────────
@@ -438,14 +439,14 @@ class AutoReplyGowaWebhookService
         ]);
 
         return "╔═══ *LAPORAN KEUANGAN* ═══╗\n\n"
-            . "Pilih laporan yang ingin dilihat:\n\n"
-            . "1️⃣  *Laporan Hari Ini*\n"
-            . "   Lihat transaksi hari ini\n\n"
-            . "2️⃣  *Laporan Keseluruhan Event*\n"
-            . "   Lihat ringkasan semua event\n\n"
-            . "3️⃣  *Kembali ke Menu Utama*\n\n"
-            . "╚════════════════════════╝\n\n"
-            . "Balas dengan angka *1*, *2*, atau *3*";
+            ."Pilih laporan yang ingin dilihat:\n\n"
+            ."1️⃣  *Laporan Hari Ini*\n"
+            ."   Lihat transaksi hari ini\n\n"
+            ."2️⃣  *Laporan Keseluruhan Event*\n"
+            ."   Lihat ringkasan semua event\n\n"
+            ."3️⃣  *Kembali ke Menu Utama*\n\n"
+            ."╚════════════════════════╝\n\n"
+            .'Balas dengan angka *1*, *2*, atau *3*';
     }
 
     protected function handleFinancialSubmenuSelection(string $sender, string $body): ?string
@@ -474,11 +475,11 @@ class AutoReplyGowaWebhookService
 
         if ($events->isEmpty()) {
             return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         $report = "╔═══ *LAPORAN HARI INI* ═══╗\n\n"
-            . "📅 Tanggal: *" . now()->format('d/m/Y') . "*\n\n";
+            .'📅 Tanggal: *'.now()->format('d/m/Y')."*\n\n";
 
         foreach ($events as $event) {
             $totalIncome = EventMoneyTransaction::where('event_id', $event->id)
@@ -501,19 +502,19 @@ class AutoReplyGowaWebhookService
                 ->whereBetween('created_at', [$today, $tomorrow])
                 ->count();
 
-            $incomeFormatted = 'Rp ' . number_format($totalIncome, 0, ',', '.');
-            $expenseFormatted = 'Rp ' . number_format($totalExpense, 0, ',', '.');
+            $incomeFormatted = 'Rp '.number_format($totalIncome, 0, ',', '.');
+            $expenseFormatted = 'Rp '.number_format($totalExpense, 0, ',', '.');
             $balance = $totalIncome - $totalExpense;
-            $balanceFormatted = 'Rp ' . number_format($balance, 0, ',', '.');
+            $balanceFormatted = 'Rp '.number_format($balance, 0, ',', '.');
 
             $report .= "━━━ *{$event->name}* ━━━\n"
-                . "💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
-                . "💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
-                . "💵 Saldo: *{$balanceFormatted}*\n\n";
+                ."💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
+                ."💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
+                ."💵 Saldo: *{$balanceFormatted}*\n\n";
         }
 
         $report .= "╚════════════════════════╝\n\n"
-            . "Ketik */menu* untuk kembali ke menu utama.";
+            .'Ketik */menu* untuk kembali ke menu utama.';
 
         return $report;
     }
@@ -529,7 +530,7 @@ class AutoReplyGowaWebhookService
 
         if ($events->isEmpty()) {
             return "📋 *Tidak ada event* yang tersedia saat ini.\n\n"
-                . "Ketik */menu* untuk kembali ke menu utama.";
+                .'Ketik */menu* untuk kembali ke menu utama.';
         }
 
         $report = "╔═══ *LAPORAN KESELURUHAN EVENT* ═══╗\n\n";
@@ -554,15 +555,15 @@ class AutoReplyGowaWebhookService
                 ->where('type', 'out')
                 ->count();
 
-            $incomeFormatted = 'Rp ' . number_format($totalIncome, 0, ',', '.');
-            $expenseFormatted = 'Rp ' . number_format($totalExpense, 0, ',', '.');
+            $incomeFormatted = 'Rp '.number_format($totalIncome, 0, ',', '.');
+            $expenseFormatted = 'Rp '.number_format($totalExpense, 0, ',', '.');
             $balance = $totalIncome - $totalExpense;
-            $balanceFormatted = 'Rp ' . number_format($balance, 0, ',', '.');
+            $balanceFormatted = 'Rp '.number_format($balance, 0, ',', '.');
 
             $report .= "━━━ *{$event->name}* ━━━\n"
-                . "💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
-                . "💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
-                . "💵 Saldo: *{$balanceFormatted}*\n\n";
+                ."💰 Pemasukan: *{$incomeFormatted}* ({$incomeCount} transaksi)\n"
+                ."💸 Pengeluaran: *{$expenseFormatted}* ({$expenseCount} transaksi)\n"
+                ."💵 Saldo: *{$balanceFormatted}*\n\n";
 
             $grandTotalIncome += $totalIncome;
             $grandTotalExpense += $totalExpense;
@@ -570,14 +571,14 @@ class AutoReplyGowaWebhookService
 
         // Grand total
         $grandBalance = $grandTotalIncome - $grandTotalExpense;
-        $grandIncomeFormatted = 'Rp ' . number_format($grandTotalIncome, 0, ',', '.');
-        $grandExpenseFormatted = 'Rp ' . number_format($grandTotalExpense, 0, ',', '.');
-        $grandBalanceFormatted = 'Rp ' . number_format($grandBalance, 0, ',', '.');
+        $grandIncomeFormatted = 'Rp '.number_format($grandTotalIncome, 0, ',', '.');
+        $grandExpenseFormatted = 'Rp '.number_format($grandTotalExpense, 0, ',', '.');
+        $grandBalanceFormatted = 'Rp '.number_format($grandBalance, 0, ',', '.');
 
         $report .= "━━━ *TOTAL KESELURUHAN* ━━━\n"
-            . "💰 Pemasukan: *{$grandIncomeFormatted}*\n"
-            . "💸 Pengeluaran: *{$grandExpenseFormatted}*\n"
-            . "💵 Saldo: *{$grandBalanceFormatted}*\n\n";
+            ."💰 Pemasukan: *{$grandIncomeFormatted}*\n"
+            ."💸 Pengeluaran: *{$grandExpenseFormatted}*\n"
+            ."💵 Saldo: *{$grandBalanceFormatted}*\n\n";
 
         if ($grandBalance < 0) {
             $report .= "⚠️ *DEFISIT!* Pengeluaran melebihi pemasukan.\n\n";
@@ -586,7 +587,7 @@ class AutoReplyGowaWebhookService
         }
 
         $report .= "╚════════════════════════════╝\n\n"
-            . "Ketik */menu* untuk kembali ke menu utama.";
+            .'Ketik */menu* untuk kembali ke menu utama.';
 
         return $report;
     }
@@ -613,11 +614,11 @@ class AutoReplyGowaWebhookService
 
         if ($globalCount >= $globalMax) {
             return "⚠️ Mohon maaf, fitur AI sedang sibuk. Silakan coba lagi nanti.\n\n"
-                . "Atau ketik */menu* untuk menggunakan menu bot.";
+                .'Atau ketik */menu* untuk menggunakan menu bot.';
         }
 
         // Check per-user rate limit
-        $userCacheKey = self::RATE_LIMIT_CACHE_PREFIX . $sender;
+        $userCacheKey = self::RATE_LIMIT_CACHE_PREFIX.$sender;
         $userCount = (int) Cache::get($userCacheKey, 0);
         $userMax = config('openrouter.rate_limit.max_per_user_per_hour', 5);
 
@@ -636,7 +637,7 @@ class AutoReplyGowaWebhookService
             ]);
 
             return "⚠️ Anda telah mencapai batas percakapan AI. Silakan coba lagi nanti.\n\n"
-                . "Ketik */menu* untuk menggunakan menu bot.";
+                .'Ketik */menu* untuk menggunakan menu bot.';
         }
 
         $systemPrompt = $this->buildAiSystemPrompt();
@@ -671,17 +672,17 @@ class AutoReplyGowaWebhookService
     protected function buildAiSystemPrompt(): string
     {
         return "Kamu adalah asisten virtual bot WhatsApp untuk aplikasi 'Bululand' — "
-            . "aplikasi manajemen iuran dan keuangan untuk warga perumahan.\n\n"
-            . "Kamu menjawab dengan ramah, sopan, dan ringkas dalam Bahasa Indonesia. "
-            . "Maksimal 2-3 kalimat saja.\n\n"
-            . "Fitur yang tersedia di bot ini:\n"
-            . "- Cek status iuran event. Caranya: ketik format `{domain_event}.iuran.{nomor_rumah}`\n"
-            . "  Contoh: test-event.iuran.H8 (untuk cek iuran rumah H8 di event test-event)\n"
-            . "- Menu interaktif: ketik `/menu` untuk melihat menu lengkap\n"
-            . "- Laporan keuangan event (harian dan keseluruhan)\n\n"
-            . "Jika user bertanya di luar fitur tersebut, arahkan mereka ke /menu.\n"
-            . "Jangan pernah memberikan data palsu atau informasi yang tidak kamu ketahui.\n"
-            . "Gunakan gaya yang santai dan bersahabat.";
+            ."aplikasi manajemen iuran dan keuangan untuk warga perumahan.\n\n"
+            .'Kamu menjawab dengan ramah, sopan, dan ringkas dalam Bahasa Indonesia. '
+            ."Maksimal 2-3 kalimat saja.\n\n"
+            ."Fitur yang tersedia di bot ini:\n"
+            ."- Cek status iuran event. Caranya: ketik format `{domain_event}.iuran.{nomor_rumah}`\n"
+            ."  Contoh: test-event.iuran.H8 (untuk cek iuran rumah H8 di event test-event)\n"
+            ."- Menu interaktif: ketik `/menu` untuk melihat menu lengkap\n"
+            ."- Laporan keuangan event (harian dan keseluruhan)\n\n"
+            ."Jika user bertanya di luar fitur tersebut, arahkan mereka ke /menu.\n"
+            ."Jangan pernah memberikan data palsu atau informasi yang tidak kamu ketahui.\n"
+            .'Gunakan gaya yang santai dan bersahabat.';
     }
 
     protected function incrementRateLimitCounter(string $key, int $currentCount): void

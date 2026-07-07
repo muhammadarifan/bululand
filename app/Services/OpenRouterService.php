@@ -8,8 +8,11 @@ use Illuminate\Support\Facades\Log;
 class OpenRouterService
 {
     private string $apiKey;
+
     private string $defaultModel;
+
     private int $timeout;
+
     private int $maxTokens;
 
     private const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -28,7 +31,7 @@ class OpenRouterService
      * @param  string  $message  Pesan dari user
      * @param  string  $systemPrompt  System prompt / instruksi untuk AI
      * @param  string|null  $model  Model ID (optional, default dari config)
-     * @return string|null  Respons teks dari AI, atau null jika gagal
+     * @return string|null Respons teks dari AI, atau null jika gagal
      */
     public function chat(string $message, string $systemPrompt, ?string $model = null): ?string
     {
@@ -41,7 +44,7 @@ class OpenRouterService
         try {
             $response = Http::timeout($this->timeout)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer '.$this->apiKey,
                     'Content-Type' => 'application/json',
                     'HTTP-Referer' => config('app.url', 'http://localhost'),
                     'X-Title' => 'Bululand Bot',
