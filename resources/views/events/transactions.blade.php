@@ -102,22 +102,6 @@ $balance = $totalIncome - $totalExpense;
                 {{-- Pemasukan Tab --}}
                 <div x-data="{ search: '' }" x-show="activeTab === 'income'" x-cloak role="tabpanel">
 
-                    {{-- Contribution Summary Card --}}
-                    @if ($totalContribution > 0)
-                    <div class="mb-5 rounded-xl border border-neutral-200 bg-white p-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-neutral-100 text-neutral-600">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
                     {{-- Realtime filter input --}}
                     <div class="mb-5">
                         <div class="relative">
