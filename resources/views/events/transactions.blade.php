@@ -100,8 +100,7 @@ $balance = $totalIncome - $totalExpense;
                 </div>
 
                 {{-- Pemasukan Tab --}}
-                <div x-data="{ activeSubTab: '{{ request()->has('search_house') ? 'search' : 'summary' }}' }"
-                    x-show="activeTab === 'income'" x-cloak role="tabpanel">
+                <div x-data="{ search: '' }" x-show="activeTab === 'income'" x-cloak role="tabpanel">
 
                     {{-- Contribution Summary Card --}}
                     @if ($totalContribution > 0)
@@ -125,144 +124,42 @@ $balance = $totalIncome - $totalExpense;
                     </div>
                     @endif
 
-                    {{-- Sub Tab Navigation --}}
-                    <div class="mb-5 border-b border-neutral-200">
-                        <nav class="-mb-px flex gap-4 sm:gap-6" role="tablist">
-                            <button @click="activeSubTab = 'summary'"
-                                :class="activeSubTab === 'summary' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                                class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                                role="tab" type="button">
-                                Ringkasan
-                            </button>
-                            <button @click="activeSubTab = 'search'"
-                                :class="activeSubTab === 'search' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                                class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                                role="tab" type="button">
-                                Cek Iuran Rumah
-                            </button>
-                        </nav>
-                    </div>
-
-                    {{-- Summary Sub Tab (grouped by house) --}}
-                    <div x-show="activeSubTab === 'summary'" x-cloak role="tabpanel">
-                        <div class="rounded-xl border border-neutral-200">
-                            <div class="border-b border-neutral-100 px-4 py-3">
-                                <h3 class="text-sm font-bold tracking-tight">Pemasukan per Rumah</h3>
-                            </div>
-
-                            {{-- Card list grouped by house --}}
-                            <div class="divide-y divide-neutral-100">
-                                @forelse ($incomeByHouse as $item)
-                                <div class="flex items-center justify-between px-4 py-3.5">
-                                    <p class="text-sm font-medium text-neutral-700">
-                                        {{ $item->house->code ?? 'Orang Baik' }}
-                                    </p>
-                                    <p class="shrink-0 text-sm font-semibold text-neutral-800">
-                                        Rp {{ number_format($item->total_amount, 0, ',', '.') }}
-                                    </p>
-                                </div>
-                                @empty
-                                <div class="px-4 py-12 text-center text-sm text-neutral-400">
-                                    Belum ada pemasukan.
-                                </div>
-                                @endforelse
-                            </div>
+                    {{-- Realtime filter input --}}
+                    <div class="mb-5">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Cari nomor rumah..."
+                                class="h-11 w-full rounded-lg border border-neutral-300 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-800">
                         </div>
                     </div>
 
-                    {{-- Cek Iuran Sub Tab --}}
-                    <div x-show="activeSubTab === 'search'" x-cloak role="tabpanel">
-                        {{-- Search Form --}}
-                        <div class="mb-5 rounded-xl border border-neutral-200 bg-neutral-50 p-5">
-                            <div>
-                                <h3 class="text-lg font-bold tracking-tight">Cek Iuran Rumah</h3>
-                                <p class="mt-1 text-sm leading-relaxed text-neutral-500">Masukkan kode rumah untuk
-                                    mengecek apakah rumah tersebut sudah membayar iuran.</p>
-                            </div>
-                            <div class="mt-4">
-                                <form method="GET" action="{{ route('events.transactions', $event->subdomain) }}"
-                                    class="flex gap-2 flex-row">
-                                    <div class="relative flex-1">
-                                        <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
-                                            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                        <input type="text" name="search_house" placeholder="Nama rumah..."
-                                            value="{{ $searchHouse }}"
-                                            class="h-11 w-full rounded-lg border border-neutral-300 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-800">
-                                    </div>
-                                    <button type="submit"
-                                        class="inline-flex h-11 items-center justify-center rounded-lg bg-neutral-800 px-5 text-sm font-medium text-white transition hover:bg-neutral-900 active:scale-[0.98]">
-                                        Cari
-                                    </button>
-                                </form>
-                            </div>
+                    {{-- Grouped income list with realtime filter --}}
+                    <div class="rounded-xl border border-neutral-200">
+                        <div class="border-b border-neutral-100 px-4 py-3">
+                            <h3 class="text-sm font-bold tracking-tight">Pemasukan per Rumah</h3>
                         </div>
 
-                        {{-- Search Error --}}
-                        @if ($searchHouse !== '' && isset($houseResult['not_found']))
-                        <div class="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4 text-neutral-600">
-                            <p class="font-semibold">Pencarian tidak ditemukan</p>
-                            <p class="mt-1 text-sm">Tidak ada data iuran untuk "<span class="font-medium">{{
-                                    $searchHouse
-                                    }}</span>". Silakan periksa kembali kode rumah Anda.</p>
+                        <div class="divide-y divide-neutral-100">
+                            @forelse ($incomeByHouse as $item)
+                            <div x-show="!search || '{{ $item->house->code ?? 'Orang Baik' }}'.toLowerCase().includes(search.toLowerCase())"
+                                class="flex items-center justify-between px-4 py-3.5">
+                                <p class="text-sm font-medium text-neutral-700">
+                                    {{ $item->house->code ?? 'Orang Baik' }}
+                                </p>
+                                <p class="shrink-0 text-sm font-semibold text-neutral-800">
+                                    Rp {{ number_format($item->total_amount, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            @empty
+                            <div class="px-4 py-12 text-center text-sm text-neutral-400">
+                                Belum ada pemasukan.
+                            </div>
+                            @endforelse
                         </div>
-                        @endif
-
-                        {{-- Search Result (no tables, card layout) --}}
-                        @if ($searchHouse !== '' && !isset($houseResult['not_found']))
-                        <div class="rounded-xl border border-neutral-200">
-                            <div class="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-                                <div>
-                                    <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Hasil
-                                        Pencarian</p>
-                                    <h2 class="mt-1 text-lg font-bold">"{{ $houseResult['house_code'] }}"</h2>
-                                </div>
-                            </div>
-
-                            {{-- Card list for house transactions --}}
-                            <div class="divide-y divide-neutral-100">
-                                @forelse ($houseResult['transactions'] as $tx)
-                                <div class="flex items-center justify-between px-4 py-2.5">
-                                    <span class="text-sm font-medium text-neutral-700">
-                                        {{ $tx->created_at->format('d M Y') }}
-                                        @if ($tx->description)
-                                        <span class="text-neutral-400">· {{ $tx->description }}</span>
-                                        @endif
-                                    </span>
-                                    <span class="text-sm font-semibold text-neutral-900">
-                                        Rp {{ number_format($tx->amount, 0, ',', '.') }}
-                                    </span>
-                                </div>
-                                @empty
-                                <div class="px-4 py-12 text-center text-sm text-neutral-400">
-                                    Belum ada transaksi iuran.
-                                </div>
-                                @endforelse
-                            </div>
-
-                            <div class="flex items-center justify-between border-t border-neutral-200 px-4 py-3">
-                                <span class="text-xs font-semibold text-neutral-500">Total</span>
-                                <span class="text-sm font-bold text-neutral-900">Rp {{
-                                    number_format($houseResult['total'], 0,
-                                    ',', '.') }}</span>
-                            </div>
-                            @if ($houseResult['total'] > 0)
-                            <div class="border-t border-neutral-200 px-4 py-3 text-center">
-                                <span
-                                    class="inline-block rounded-full bg-neutral-900 px-3 py-1 text-[11px] font-bold text-white">✓
-                                    Lunas</span>
-                            </div>
-                            @else
-                            <div class="border-t border-neutral-200 px-4 py-3 text-center">
-                                <span
-                                    class="inline-block rounded-full bg-red-600 px-3 py-1 text-[11px] font-bold text-white">Belum
-                                    Lunas</span>
-                            </div>
-                            @endif
-                        </div>
-                        @endif
                     </div>
                 </div>
 
