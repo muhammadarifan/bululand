@@ -143,39 +143,23 @@ $balance = $totalIncome - $totalExpense;
                         </nav>
                     </div>
 
-                    {{-- Summary Sub Tab (no tables, card layout at all sizes) --}}
+                    {{-- Summary Sub Tab (grouped by house) --}}
                     <div x-show="activeSubTab === 'summary'" x-cloak role="tabpanel">
                         <div class="rounded-xl border border-neutral-200">
                             <div class="border-b border-neutral-100 px-4 py-3">
-                                <h3 class="text-sm font-bold tracking-tight">Pemasukan Lainnya</h3>
+                                <h3 class="text-sm font-bold tracking-tight">Pemasukan per Rumah</h3>
                             </div>
 
-                            {{-- Card list for income (no horizontal scroll) --}}
+                            {{-- Card list grouped by house --}}
                             <div class="divide-y divide-neutral-100">
-                                @forelse ($incomeTransactions as $transaction)
-                                <div class="px-4 py-3.5">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium truncate">{{ $transaction->description }}</p>
-                                            <p class="mt-0.5 text-xs text-neutral-400">
-                                                {{ $transaction->created_at->format('d M Y') }}
-                                                @if ($transaction->house)
-                                                · Rumah: {{ $transaction->house->code }}
-                                                @endif
-                                            </p>
-                                            @if ($transaction->category || $transaction->donor_name)
-                                            <p class="mt-0.5 text-xs text-neutral-400">
-                                                {{ $transaction->category ?? '-' }}
-                                                @if ($transaction->donor_name)
-                                                · {{ $transaction->donor_name }}
-                                                @endif
-                                            </p>
-                                            @endif
-                                        </div>
-                                        <p class="shrink-0 text-sm font-semibold text-neutral-800">
-                                            Rp {{ number_format($transaction->amount, 0, ',', '.') }}
-                                        </p>
-                                    </div>
+                                @forelse ($incomeByHouse as $item)
+                                <div class="flex items-center justify-between px-4 py-3.5">
+                                    <p class="text-sm font-medium text-neutral-700">
+                                        {{ $item->house->code ?? 'Orang Baik' }}
+                                    </p>
+                                    <p class="shrink-0 text-sm font-semibold text-neutral-800">
+                                        Rp {{ number_format($item->total_amount, 0, ',', '.') }}
+                                    </p>
                                 </div>
                                 @empty
                                 <div class="px-4 py-12 text-center text-sm text-neutral-400">
@@ -183,12 +167,6 @@ $balance = $totalIncome - $totalExpense;
                                 </div>
                                 @endforelse
                             </div>
-
-                            @if ($incomeTransactions->hasPages())
-                            <div class="border-t border-neutral-200 px-4 py-3">
-                                {{ $incomeTransactions->links() }}
-                            </div>
-                            @endif
                         </div>
                     </div>
 

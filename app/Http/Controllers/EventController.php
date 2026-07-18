@@ -135,6 +135,15 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->sum('amount');
 
+        // Income grouped by house (including null house_id as "Orang Baik")
+        $incomeByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->selectRaw('house_id, SUM(amount) as total_amount')
+            ->with('house')
+            ->groupBy('house_id')
+            ->orderByDesc('total_amount')
+            ->get();
+
         $incomeTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'in')
             ->where(function ($q) {
@@ -184,6 +193,7 @@ class EventController extends Controller
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'totalContribution' => $totalContribution,
+            'incomeByHouse' => $incomeByHouse,
             'incomeTransactions' => $incomeTransactions,
             'expenseTransactions' => $expenseTransactions,
             'searchHouse' => $searchHouse,
