@@ -62,18 +62,18 @@ $balance = $totalIncome - $totalExpense;
 
             {{-- Search Error --}}
             @if ($searchQuery !== '' && isset($contributionResults['not_found']))
-            {{-- <section class="mb-8">
+            <section class="mb-8">
                 <div class="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-4 text-neutral-600">
                     <p class="font-semibold">Pencarian tidak ditemukan</p>
                     <p class="mt-1 text-sm">Tidak ada data iuran untuk "<span class="font-medium">{{
                             $contributionResults['query'] }}</span>". Silakan periksa kembali nama rumah Anda.</p>
                 </div>
-            </section> --}}
+            </section>
             @endif
 
             {{-- Search Results --}}
             @if ($searchQuery !== '' && !isset($contributionResults['not_found']))
-            {{-- <section class="mb-8">
+            <section class="mb-8">
                 <div class="rounded-xl border border-neutral-200">
                     <div class="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
                         <div>
@@ -114,11 +114,11 @@ $balance = $totalIncome - $totalExpense;
                         @endforeach
                     </div>
                 </div>
-            </section> --}}
+            </section>
             @endif
 
             {{-- Cek Iuran Section --}}
-            {{-- <section id="iuran" class="mb-8">
+            <section id="iuran" class="mb-8">
                 <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-widest text-neutral-400">Cek Iuran</span>
@@ -285,7 +285,7 @@ $balance = $totalIncome - $totalExpense;
                         };
                     }
                 </script>
-            </section> --}}
+            </section>
 
             {{-- Keuangan Section --}}
             <section id="keuangan" class="mb-12">
