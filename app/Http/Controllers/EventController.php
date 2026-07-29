@@ -143,7 +143,7 @@ class EventController extends Controller
             ->where('type', 'in')
             ->selectRaw('house_id, is_anonymous, donor_name, MIN(id) as first_id, SUM(amount) as total_amount')
             ->with('house')
-            ->groupBy(DB::raw("COALESCE(house_id, CONCAT('anon_', id))"))
+            ->groupBy(DB::raw("COALESCE(house_id::text, CONCAT('anon_', id))"))
             ->groupBy('house_id')
             ->groupBy('is_anonymous')
             ->groupBy('donor_name')
