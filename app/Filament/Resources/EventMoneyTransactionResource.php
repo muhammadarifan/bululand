@@ -17,11 +17,14 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -48,6 +51,9 @@ class EventMoneyTransactionResource extends Resource
                     ->maxLength(255)
                     ->reactive()
                     ->required(fn (Get $get): bool => blank($get('house_id'))),
+
+                Toggle::make('is_anonymous')
+                    ->label('Anonymous Donor'),
 
                 Select::make('house_id')
                     ->label('House')
@@ -136,6 +142,9 @@ class EventMoneyTransactionResource extends Resource
                     ->label('House'),
                 TextEntry::make('donor_name')
                     ->label('Donor Name'),
+                IconEntry::make('is_anonymous')
+                    ->label('Anonymous Donor')
+                    ->boolean(),
                 TextEntry::make('description'),
                 TextEntry::make('type')
                     ->badge()
@@ -174,6 +183,10 @@ class EventMoneyTransactionResource extends Resource
                     ->searchable()
                     ->limit(25),
 
+                IconColumn::make('is_anonymous')
+                    ->label('Anonymous')
+                    ->boolean(),
+
                 TextColumn::make('description')
                     ->searchable()
                     ->limit(40),
@@ -211,6 +224,7 @@ class EventMoneyTransactionResource extends Resource
                     ->preserveFormDataWhenCreatingAnother([
                         'event_id',
                         'donor_name',
+                        'is_anonymous',
                         'house_id',
                         'description',
                         'type',

@@ -160,6 +160,15 @@ class EventController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20, ['*'], 'expense_page');
 
+        // Sequential number for each anonymous donor, ordered by id, so the
+        // same transaction always resolves to the same "Orang Baik {n}" label.
+        $anonymousNumbers = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('is_anonymous', true)
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(fn ($index) => $index + 1);
+
         // Search house contribution
         $searchHouse = $request->query('search_house', '');
         $houseResult = [];
@@ -196,6 +205,7 @@ class EventController extends Controller
             'incomeByHouse' => $incomeByHouse,
             'incomeTransactions' => $incomeTransactions,
             'expenseTransactions' => $expenseTransactions,
+            'anonymousNumbers' => $anonymousNumbers,
             'searchHouse' => $searchHouse,
             'houseResult' => $houseResult,
         ]);

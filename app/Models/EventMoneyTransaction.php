@@ -12,11 +12,16 @@ class EventMoneyTransaction extends Model
         'event_id',
         'house_id',
         'donor_name',
+        'is_anonymous',
         'description',
         'type',
         'category',
         'amount',
         'attachment',
+    ];
+
+    protected $casts = [
+        'is_anonymous' => 'boolean',
     ];
 
     public function event(): BelongsTo

@@ -157,10 +157,12 @@ $balance = $totalIncome - $totalExpense;
                                             · Rumah: {{ $transaction->house->code }}
                                             @endif
                                         </p>
-                                        @if ($transaction->category || $transaction->donor_name)
+                                        @if ($transaction->category || $transaction->donor_name || $transaction->is_anonymous)
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $transaction->category ?? '-' }}
-                                            @if ($transaction->donor_name)
+                                            @if ($transaction->is_anonymous)
+                                            · Orang Baik {{ $anonymousNumbers[$transaction->id] ?? '' }}
+                                            @elseif ($transaction->donor_name)
                                             · {{ $transaction->donor_name }}
                                             @endif
                                         </p>
