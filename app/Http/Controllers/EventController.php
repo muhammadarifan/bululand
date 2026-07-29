@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventItemDonation;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -175,6 +176,19 @@ class EventController extends Controller
             ->flip()
             ->map(fn ($index) => $index + 1);
 
+        $itemDonations = EventItemDonation::where('event_id', $eventModel->id)
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20, ['*'], 'item_page');
+
+        // Separate anonymous numbering sequence for item donations.
+        $anonymousItemNumbers = EventItemDonation::where('event_id', $eventModel->id)
+            ->where('is_anonymous', true)
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(fn ($index) => $index + 1);
+
         // Search house contribution
         $searchHouse = $request->query('search_house', '');
         $houseResult = [];
@@ -212,6 +226,8 @@ class EventController extends Controller
             'incomeTransactions' => $incomeTransactions,
             'expenseTransactions' => $expenseTransactions,
             'anonymousNumbers' => $anonymousNumbers,
+            'itemDonations' => $itemDonations,
+            'anonymousItemNumbers' => $anonymousItemNumbers,
             'searchHouse' => $searchHouse,
             'houseResult' => $houseResult,
         ]);

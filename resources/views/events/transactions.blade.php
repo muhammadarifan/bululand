@@ -96,6 +96,15 @@ $balance = $totalIncome - $totalExpense;
                                 class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
                                 $expenseTransactions->total() }}</span>
                         </button>
+                        <button @click="activeTab = 'barang'"
+                            :class="activeTab === 'barang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
+                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            role="tab" type="button">
+                            Barang
+                            <span
+                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
+                                $itemDonations->total() }}</span>
+                        </button>
                     </nav>
                 </div>
 
@@ -189,6 +198,50 @@ $balance = $totalIncome - $totalExpense;
                         @if ($expenseTransactions->hasPages())
                         <div class="border-t border-neutral-200 px-4 py-3">
                             {{ $expenseTransactions->links() }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Barang Tab (item/goods donations) --}}
+                <div x-show="activeTab === 'barang'" x-cloak role="tabpanel">
+                    <div class="rounded-xl border border-neutral-200">
+                        <div class="divide-y divide-neutral-100">
+                            @forelse ($itemDonations as $donation)
+                            @php
+                            $donorLabel = $donation->is_anonymous
+                                ? 'Orang Baik ' . ($anonymousItemNumbers[$donation->id] ?? '')
+                                : ($donation->house->code ?? $donation->donor_name ?? '-');
+                            @endphp
+                            <div class="px-4 py-3.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium truncate">{{ $donation->item_name }}</p>
+                                        <p class="mt-0.5 text-xs text-neutral-400">
+                                            {{ $donation->created_at->format('d M Y') }}
+                                            · {{ $donorLabel }}
+                                        </p>
+                                        @if ($donation->description)
+                                        <p class="mt-0.5 text-xs text-neutral-400">
+                                            {{ $donation->description }}
+                                        </p>
+                                        @endif
+                                    </div>
+                                    <p class="shrink-0 text-sm font-semibold text-neutral-800">
+                                        {{ $donation->quantity }} {{ $donation->unit }}
+                                    </p>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="px-4 py-12 text-center text-sm text-neutral-400">
+                                Belum ada sumbangan barang.
+                            </div>
+                            @endforelse
+                        </div>
+
+                        @if ($itemDonations->hasPages())
+                        <div class="border-t border-neutral-200 px-4 py-3">
+                            {{ $itemDonations->links() }}
                         </div>
                         @endif
                     </div>
