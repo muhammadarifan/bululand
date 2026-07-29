@@ -7,6 +7,7 @@ use App\Models\EventMoneyTransaction;
 use App\Models\House;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -135,12 +136,17 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->sum('amount');
 
-        // Income grouped by house (including null house_id as "Orang Baik")
+        // Income grouped by house, only merging rows that share the same
+        // house AND the same is_anonymous value. Rows without a house are
+        // never merged with each other (each keeps its own group via id).
         $incomeByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'in')
-            ->selectRaw('house_id, SUM(amount) as total_amount')
+            ->selectRaw('house_id, is_anonymous, donor_name, MIN(id) as first_id, SUM(amount) as total_amount')
             ->with('house')
+            ->groupBy(DB::raw("COALESCE(house_id, CONCAT('anon_', id))"))
             ->groupBy('house_id')
+            ->groupBy('is_anonymous')
+            ->groupBy('donor_name')
             ->orderByDesc('total_amount')
             ->get();
 

@@ -123,10 +123,16 @@ $balance = $totalIncome - $totalExpense;
 
                         <div class="divide-y divide-neutral-100">
                             @forelse ($incomeByHouse as $item)
-                            <div x-show="!search || '{{ $item->house->code ?? 'Orang Baik' }}'.toLowerCase().includes(search.toLowerCase())"
+                            @php
+                            $label = $item->is_anonymous
+                                ? 'Orang Baik ' . ($anonymousNumbers[$item->first_id] ?? '')
+                                : ($item->house->code ?? $item->donor_name ?? '-');
+                            @endphp
+                            <div x-data="{ label: @js($label) }"
+                                x-show="!search || label.toLowerCase().includes(search.toLowerCase())"
                                 class="flex items-center justify-between px-4 py-3.5">
                                 <p class="text-sm font-medium text-neutral-700">
-                                    {{ $item->house->code ?? 'Orang Baik' }}
+                                    {{ $label }}
                                 </p>
                                 <p class="shrink-0 text-sm font-semibold text-neutral-800">
                                     Rp {{ number_format($item->total_amount, 0, ',', '.') }}
