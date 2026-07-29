@@ -58,6 +58,11 @@ class EventItemDonationResource extends Resource
                     ->maxLength(255)
                     ->placeholder('pcs, kg, dus, ...'),
 
+                TextInput::make('price')
+                    ->label('Harga')
+                    ->numeric()
+                    ->prefix('Rp'),
+
                 TextInput::make('donor_name')
                     ->label('Donor Name')
                     ->maxLength(255)
@@ -103,6 +108,9 @@ class EventItemDonationResource extends Resource
                     ->label('Item Name'),
                 TextEntry::make('quantity'),
                 TextEntry::make('unit'),
+                TextEntry::make('price')
+                    ->label('Harga')
+                    ->money('IDR'),
                 TextEntry::make('house.code')
                     ->label('House'),
                 TextEntry::make('donor_name')
@@ -133,6 +141,11 @@ class EventItemDonationResource extends Resource
                 TextColumn::make('quantity'),
 
                 TextColumn::make('unit'),
+
+                TextColumn::make('price')
+                    ->label('Harga')
+                    ->money('IDR')
+                    ->sortable(),
 
                 TextColumn::make('house.code')
                     ->label('House')

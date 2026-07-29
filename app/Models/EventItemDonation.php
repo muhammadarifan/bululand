@@ -15,6 +15,7 @@ class EventItemDonation extends Model
         'item_name',
         'quantity',
         'unit',
+        'price',
         'description',
         'attachment',
     ];

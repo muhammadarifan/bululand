@@ -227,9 +227,16 @@ $balance = $totalIncome - $totalExpense;
                                         </p>
                                         @endif
                                     </div>
-                                    <p class="shrink-0 text-sm font-semibold text-neutral-800">
-                                        {{ $donation->quantity }} {{ $donation->unit }}
-                                    </p>
+                                    <div class="shrink-0 text-right">
+                                        <p class="text-sm font-semibold text-neutral-800">
+                                            {{ $donation->quantity }} {{ $donation->unit }}
+                                        </p>
+                                        @if ($donation->price)
+                                        <p class="mt-0.5 text-xs text-neutral-400">
+                                            Rp {{ number_format($donation->price, 0, ',', '.') }}
+                                        </p>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             @empty
