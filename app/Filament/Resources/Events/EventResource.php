@@ -24,6 +24,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Hash;
 
 class EventResource extends Resource
 {
@@ -73,6 +74,16 @@ class EventResource extends Resource
                             ->numeric()
                             ->prefix('Rp')
                             ->placeholder('e.g. 50000')
+                            ->columnSpanFull(),
+
+                        TextInput::make('unpaid_contribution_access_code')
+                            ->label('Unpaid Contribution Access Code')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->helperText('Access code required to view the public "unpaid contribution" page. Leave blank to keep the current code.')
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? Hash::make($state) : null)
                             ->columnSpanFull(),
                     ]),
 

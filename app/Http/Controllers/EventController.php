@@ -9,8 +9,11 @@ use App\Models\House;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class EventController extends Controller
 {
@@ -292,5 +295,109 @@ class EventController extends Controller
             'is_paid' => $isPaid,
             'transactions' => $transactionData,
         ]);
+    }
+
+    public function unpaidContributions(Request $request, $event = null)
+    {
+        $eventModel = Event::where('subdomain', $event)->first();
+
+        if (! $eventModel) {
+            abort(404, 'Event tidak ditemukan.');
+        }
+
+        if (! $eventModel->is_active) {
+            abort(404, 'Event ini tidak aktif.');
+        }
+
+        if ($eventModel->active_until && $eventModel->active_until->isPast()) {
+            abort(404, 'Event ini sudah berakhir.');
+        }
+
+        $eventDetail = $eventModel->eventDetail;
+
+        if ($eventDetail && $eventDetail->logo) {
+            /** @var FilesystemAdapter $storage */
+            $storage = Storage::disk('local');
+            $eventDetail->logo = $storage->temporaryUrl($eventDetail->logo, 60);
+        }
+
+        $sessionKey = 'unpaid_contributions_unlocked_'.$eventModel->id;
+        $unlocked = (bool) session($sessionKey);
+
+        if (! $unlocked) {
+            return view('events.unpaid-contributions-locked', [
+                'event' => $eventModel,
+                'eventDetail' => $eventDetail,
+            ]);
+        }
+
+        $contributionFee = (float) ($eventDetail->contribution_fee ?? 0);
+
+        $paidTotals = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->where('category', 'contribution')
+            ->selectRaw('house_id, SUM(amount) as total_paid')
+            ->groupBy('house_id')
+            ->pluck('total_paid', 'house_id');
+
+        $unpaidHouses = House::orderBy('code')->get()
+            ->map(function (House $house) use ($paidTotals, $contributionFee) {
+                $paid = (float) ($paidTotals[$house->id] ?? 0);
+
+                return [
+                    'code' => $house->code,
+                    'paid' => $paid,
+                    'remaining' => max($contributionFee - $paid, 0),
+                ];
+            })
+            ->filter(fn (array $house): bool => $house['paid'] < $contributionFee)
+            ->values();
+
+        return view('events.unpaid-contributions', [
+            'event' => $eventModel,
+            'eventDetail' => $eventDetail,
+            'contributionFee' => $contributionFee,
+            'unpaidHouses' => $unpaidHouses,
+        ]);
+    }
+
+    public function unlockUnpaidContributions(Request $request, $event = null)
+    {
+        $eventModel = Event::where('subdomain', $event)->first();
+
+        if (! $eventModel) {
+            abort(404, 'Event tidak ditemukan.');
+        }
+
+        $throttleKey = 'unpaid-contrib-unlock:'.$eventModel->id.'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            throw ValidationException::withMessages([
+                'access_code' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik.",
+            ]);
+        }
+
+        $request->validate([
+            'access_code' => ['required', 'string'],
+        ]);
+
+        $eventDetail = $eventModel->eventDetail;
+        $storedHash = $eventDetail?->unpaid_contribution_access_code;
+
+        if (! $storedHash || ! Hash::check($request->input('access_code'), $storedHash)) {
+            RateLimiter::hit($throttleKey, 60);
+
+            throw ValidationException::withMessages([
+                'access_code' => 'Kode akses salah.',
+            ]);
+        }
+
+        RateLimiter::clear($throttleKey);
+
+        $request->session()->put('unpaid_contributions_unlocked_'.$eventModel->id, true);
+
+        return redirect()->route('events.unpaid-contributions', $eventModel->subdomain);
     }
 }

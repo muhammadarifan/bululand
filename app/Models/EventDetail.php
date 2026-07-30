@@ -10,6 +10,7 @@ class EventDetail extends Model
     protected $fillable = [
         'event_id',
         'contribution_fee',
+        'unpaid_contribution_access_code',
         'logo',
         'favicon',
         'hero_image',
