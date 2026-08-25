@@ -166,7 +166,7 @@ $categoryLabels = [
 
                         <div class="divide-y divide-neutral-100">
                             @forelse ($houseRecap as $item)
-                            @php $label = $item->house->code ?? '-'; @endphp
+                            @php $label = $item->house->display_name ?? '-'; @endphp
                             <div x-data="{ label: @js($label) }"
                                 x-show="!search || label.toLowerCase().includes(search.toLowerCase())"
                                 class="flex items-center justify-between px-4 py-3.5">
@@ -213,7 +213,7 @@ $categoryLabels = [
                             @php
                             $label = $item->is_anonymous
                                 ? 'Orang Baik ' . ($anonymousNumbers[$item->first_id] ?? '')
-                                : ($item->house->code ?? $item->donor_name ?? '-');
+                                : ($item->house->display_name ?? $item->donor_name ?? '-');
                             @endphp
                             <div x-data="{ label: @js($label) }"
                                 x-show="!search || label.toLowerCase().includes(search.toLowerCase())"
@@ -242,10 +242,10 @@ $categoryLabels = [
                             <div class="px-4 py-3.5">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium truncate">
+                                        <p class="text-sm font-bold truncate">
                                             {{ $transaction->is_anonymous
                                                 ? 'Orang Baik ' . ($anonymousNumbers[$transaction->id] ?? '')
-                                                : ($transaction->house->code ?? $transaction->donor_name ?? '-') }}
+                                                : ($transaction->house->display_name ?? $transaction->donor_name ?? '-') }}
                                         </p>
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $transaction->created_at->format('d M Y') }}
@@ -279,26 +279,27 @@ $categoryLabels = [
                         {{-- Card list for expense (no horizontal scroll) --}}
                         <div class="divide-y divide-neutral-100">
                             @forelse ($expenseTransactions as $transaction)
+                            @php
+                            $donorLabel = $transaction->is_anonymous
+                                ? 'Orang Baik ' . ($anonymousNumbers[$transaction->id] ?? '')
+                                : ($transaction->donor_name ?? $transaction->house->display_name ?? '-');
+                            @endphp
                             <div class="px-4 py-3.5">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium truncate">{{ $transaction->description }}</p>
+                                        <p class="text-sm font-bold truncate">{{ $donorLabel }}</p>
+                                        @if ($transaction->description)
+                                        <p class="mt-0.5 text-sm text-neutral-600">{{ $transaction->description }}</p>
+                                        @endif
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $transaction->created_at->format('d M Y') }}
                                             @if ($transaction->house)
-                                            · Rumah: {{ $transaction->house->code }}
+                                            · Rumah: {{ $transaction->house->display_name }}
+                                            @endif
+                                            @if ($transaction->category)
+                                            · {{ $categoryLabels[$transaction->category] ?? $transaction->category }}
                                             @endif
                                         </p>
-                                        @if ($transaction->category || $transaction->donor_name || $transaction->is_anonymous)
-                                        <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $transaction->category ? ($categoryLabels[$transaction->category] ?? $transaction->category) : '-' }}
-                                            @if ($transaction->is_anonymous)
-                                            · Orang Baik {{ $anonymousNumbers[$transaction->id] ?? '' }}
-                                            @elseif ($transaction->donor_name)
-                                            · {{ $transaction->donor_name }}
-                                            @endif
-                                        </p>
-                                        @endif
                                     </div>
                                     <p class="shrink-0 text-sm font-semibold text-neutral-800">
                                         Rp {{ number_format($transaction->amount, 0, ',', '.') }}
@@ -322,15 +323,15 @@ $categoryLabels = [
                             @php
                             $donorLabel = $donation->is_anonymous
                                 ? 'Orang Baik ' . ($anonymousItemNumbers[$donation->id] ?? '')
-                                : ($donation->house->code ?? $donation->donor_name ?? '-');
+                                : ($donation->house->display_name ?? $donation->donor_name ?? '-');
                             @endphp
                             <div class="px-4 py-3.5">
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium truncate">{{ $donation->item_name }}</p>
+                                        <p class="text-sm font-bold truncate">{{ $donation->item_name }}</p>
+                                        <p class="mt-0.5 text-sm text-neutral-600 truncate">{{ $donorLabel }}</p>
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $donation->created_at->format('d M Y') }}
-                                            · {{ $donorLabel }}
                                         </p>
                                         @if ($donation->description)
                                         <p class="mt-0.5 text-xs text-neutral-400">
