@@ -8,6 +8,7 @@ class House extends Model
 {
     protected $fillable = [
         'code',
+        'name',
     ];
 
     public function eventContributions()
