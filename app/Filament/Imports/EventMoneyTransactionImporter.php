@@ -27,7 +27,8 @@ class EventMoneyTransactionImporter extends Importer
                 ->rules(['max:255']),
             ImportColumn::make('is_anonymous')
                 ->example('0')
-                ->boolean(),
+                ->boolean()
+                ->castStateUsing(fn (?bool $state): bool => (bool) $state),
             ImportColumn::make('description')
                 ->example('Donasi warga')
                 ->requiredMapping()
