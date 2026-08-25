@@ -106,6 +106,123 @@ class EventController extends Controller
         ]);
     }
 
+    public function print(Request $request, $event = null)
+    {
+        $eventModel = Event::where('subdomain', $event)->first();
+
+        if (! $eventModel) {
+            abort(404, 'Event tidak ditemukan.');
+        }
+
+        if (! $eventModel->is_active) {
+            abort(404, 'Event ini tidak aktif.');
+        }
+
+        if ($eventModel->active_until && $eventModel->active_until->isPast()) {
+            abort(404, 'Event ini sudah berakhir.');
+        }
+
+        $totalIncome = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->sum('amount');
+
+        $totalExpense = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'out')
+            ->sum('amount');
+
+        $totalItemDonation = EventItemDonation::where('event_id', $eventModel->id)
+            ->selectRaw('SUM(COALESCE(price, 0) * quantity) as total')
+            ->value('total') ?? 0;
+
+        $iuranTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->where('category', 'contribution')
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $donasiTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->where(function ($q) {
+                $q->where('category', '!=', 'contribution')
+                    ->orWhereNull('category');
+            })
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $expenseTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'out')
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $anonymousNumbers = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('is_anonymous', true)
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(fn ($index) => $index + 1);
+
+        $itemDonations = EventItemDonation::where('event_id', $eventModel->id)
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $anonymousItemNumbers = EventItemDonation::where('event_id', $eventModel->id)
+            ->where('is_anonymous', true)
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(fn ($index) => $index + 1);
+
+        $moneyByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->whereNotNull('house_id')
+            ->selectRaw("house_id, SUM(CASE WHEN category = 'contribution' THEN amount ELSE 0 END) as contribution_total, SUM(CASE WHEN category != 'contribution' OR category IS NULL THEN amount ELSE 0 END) as donation_total")
+            ->groupBy('house_id')
+            ->get()
+            ->keyBy('house_id');
+
+        $itemByHouse = EventItemDonation::where('event_id', $eventModel->id)
+            ->whereNotNull('house_id')
+            ->selectRaw('house_id, SUM(COALESCE(price, 0) * quantity) as item_total')
+            ->groupBy('house_id')
+            ->get()
+            ->keyBy('house_id');
+
+        $houseIds = $moneyByHouse->keys()->merge($itemByHouse->keys())->unique();
+        $houses = House::whereIn('id', $houseIds)->get()->keyBy('id');
+
+        $houseRecap = $houseIds->map(function ($houseId) use ($moneyByHouse, $itemByHouse, $houses) {
+            $contributionTotal = $moneyByHouse[$houseId]->contribution_total ?? 0;
+            $donationTotal = $moneyByHouse[$houseId]->donation_total ?? 0;
+            $itemTotal = $itemByHouse[$houseId]->item_total ?? 0;
+
+            return (object) [
+                'house' => $houses[$houseId] ?? null,
+                'contribution_total' => $contributionTotal,
+                'donation_total' => $donationTotal,
+                'item_total' => $itemTotal,
+                'grand_total' => $contributionTotal + $donationTotal + $itemTotal,
+            ];
+        })->sortByDesc('grand_total')->values();
+
+        return view('events.print', [
+            'event' => $eventModel,
+            'totalIncome' => $totalIncome,
+            'totalExpense' => $totalExpense,
+            'totalItemDonation' => $totalItemDonation,
+            'houseRecap' => $houseRecap,
+            'iuranTransactions' => $iuranTransactions,
+            'donasiTransactions' => $donasiTransactions,
+            'expenseTransactions' => $expenseTransactions,
+            'anonymousNumbers' => $anonymousNumbers,
+            'itemDonations' => $itemDonations,
+            'anonymousItemNumbers' => $anonymousItemNumbers,
+        ]);
+    }
+
     public function transactions(Request $request, $event = null)
     {
         $eventModel = Event::where('subdomain', $event)->first();

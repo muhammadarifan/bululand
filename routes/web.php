@@ -13,6 +13,7 @@ Route::get('/', function () {
 
 if (config('app.env') === 'local') {
     Route::get('/{event}/transactions', [EventController::class, 'transactions'])->name('events.transactions');
+    Route::get('/{event}/transactions/print', [EventController::class, 'print'])->name('events.print');
     Route::get('/{event}/check-contribution', [EventController::class, 'checkContribution'])->name('events.check-contribution');
     Route::get('/{event}/unpaid-contributions', [EventController::class, 'unpaidContributions'])->name('events.unpaid-contributions');
     Route::post('/{event}/unpaid-contributions/unlock', [EventController::class, 'unlockUnpaidContributions'])->name('events.unpaid-contributions.unlock');
@@ -21,6 +22,7 @@ if (config('app.env') === 'local') {
     Route::domain('{event}.'.config('app.url'))->group(function () {
         Route::get('/', [EventController::class, 'show'])->name('events.show');
         Route::get('/transactions', [EventController::class, 'transactions'])->name('events.transactions');
+        Route::get('/transactions/print', [EventController::class, 'print'])->name('events.print');
         Route::get('/check-contribution', [EventController::class, 'checkContribution'])->name('events.check-contribution');
         Route::get('/unpaid-contributions', [EventController::class, 'unpaidContributions'])->name('events.unpaid-contributions');
         Route::post('/unpaid-contributions/unlock', [EventController::class, 'unlockUnpaidContributions'])->name('events.unpaid-contributions.unlock');
