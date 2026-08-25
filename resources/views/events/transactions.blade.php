@@ -247,17 +247,6 @@ $categoryLabels = [
                                                 ? 'Orang Baik ' . ($anonymousNumbers[$transaction->id] ?? '')
                                                 : ($transaction->house->display_name ?? $transaction->donor_name ?? '-') }}
                                         </p>
-                                        <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $transaction->created_at->format('d M Y') }}
-                                            @if ($transaction->category)
-                                            · {{ $categoryLabels[$transaction->category] ?? $transaction->category }}
-                                            @endif
-                                        </p>
-                                        @if ($transaction->description)
-                                        <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $transaction->description }}
-                                        </p>
-                                        @endif
                                     </div>
                                     <p class="shrink-0 text-sm font-semibold text-neutral-800">
                                         Rp {{ number_format($transaction->amount, 0, ',', '.') }}
@@ -291,15 +280,6 @@ $categoryLabels = [
                                         @if ($transaction->description)
                                         <p class="mt-0.5 text-sm text-neutral-600">{{ $transaction->description }}</p>
                                         @endif
-                                        <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $transaction->created_at->format('d M Y') }}
-                                            @if ($transaction->house)
-                                            · Rumah: {{ $transaction->house->display_name }}
-                                            @endif
-                                            @if ($transaction->category)
-                                            · {{ $categoryLabels[$transaction->category] ?? $transaction->category }}
-                                            @endif
-                                        </p>
                                     </div>
                                     <p class="shrink-0 text-sm font-semibold text-neutral-800">
                                         Rp {{ number_format($transaction->amount, 0, ',', '.') }}
@@ -330,9 +310,6 @@ $categoryLabels = [
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-bold truncate">{{ $donation->item_name }}</p>
                                         <p class="mt-0.5 text-sm text-neutral-600 truncate">{{ $donorLabel }}</p>
-                                        <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $donation->created_at->format('d M Y') }}
-                                        </p>
                                         @if ($donation->description)
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $donation->description }}
