@@ -216,6 +216,11 @@ class EventController extends Controller
             ];
         })->sortByDesc('grand_total')->values();
 
+        $debts = EventDebt::where('event_id', $eventModel->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $totalDebt = $debts->sum('amount');
+
         return view('events.print', [
             'event' => $eventModel,
             'totalIncome' => $totalIncome,
@@ -228,6 +233,8 @@ class EventController extends Controller
             'anonymousNumbers' => $anonymousNumbers,
             'itemDonations' => $itemDonations,
             'anonymousItemNumbers' => $anonymousItemNumbers,
+            'debts' => $debts,
+            'totalDebt' => $totalDebt,
         ]);
     }
 

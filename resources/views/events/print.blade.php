@@ -61,16 +61,15 @@
 
     <h2>Iuran Wajib ({{ $iuranTransactions->count() }})</h2>
     <table>
-        <thead><tr><th>Rumah</th><th>Tanggal</th><th class="amount">Jumlah</th></tr></thead>
+        <thead><tr><th>Rumah</th><th class="amount">Jumlah</th></tr></thead>
         <tbody>
             @forelse ($iuranTransactions as $tx)
             <tr>
                 <td>{{ $tx->is_anonymous ? 'Orang Baik ' . ($anonymousNumbers[$tx->id] ?? '') : ($tx->house->display_name ?? $tx->donor_name ?? '-') }}</td>
-                <td>{{ $tx->created_at->format('d M Y') }}</td>
                 <td class="amount">Rp {{ number_format($tx->amount, 0, ',', '.') }}</td>
             </tr>
             @empty
-            <tr><td class="empty" colspan="3">Belum ada iuran wajib.</td></tr>
+            <tr><td class="empty" colspan="2">Belum ada iuran wajib.</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -121,6 +120,27 @@
             <tr><td class="empty" colspan="3">Belum ada pengeluaran.</td></tr>
             @endforelse
         </tbody>
+    </table>
+
+    <h2>Rincian Hutang ({{ $debts->count() }})</h2>
+    <table>
+        <thead><tr><th>Kreditur</th><th>Deskripsi</th><th class="amount">Jumlah</th></tr></thead>
+        <tbody>
+            @forelse ($debts as $debt)
+            <tr>
+                <td>{{ $debt->creditor_name }}</td>
+                <td>{{ $debt->description ?? '-' }}</td>
+                <td class="amount">Rp {{ number_format($debt->amount, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr><td class="empty" colspan="3">Belum ada hutang.</td></tr>
+            @endforelse
+        </tbody>
+        @if ($debts->count() > 0)
+        <tfoot>
+            <tr><td colspan="2"><strong>Total Hutang</strong></td><td class="amount"><strong>Rp {{ number_format($totalDebt, 0, ',', '.') }}</strong></td></tr>
+        </tfoot>
+        @endif
     </table>
 </body>
 
