@@ -16,6 +16,7 @@ class HouseImporter extends Importer
         return [
             ImportColumn::make('code')
                 ->label('House Code')
+                ->example('A1')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
         ];

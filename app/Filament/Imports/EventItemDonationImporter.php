@@ -16,25 +16,34 @@ class EventItemDonationImporter extends Importer
         return [
             ImportColumn::make('event')
                 ->relationship(resolveUsing: 'name')
+                ->example('17 Agustusan')
                 ->requiredMapping()
                 ->rules(['required']),
             ImportColumn::make('item_name')
+                ->example('Beras')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('quantity')
+                ->example('10')
                 ->numeric()
                 ->rules(['numeric']),
-            ImportColumn::make('unit'),
+            ImportColumn::make('unit')
+                ->example('kg'),
             ImportColumn::make('price')
+                ->example('15000')
                 ->numeric()
                 ->rules(['numeric']),
             ImportColumn::make('house')
-                ->relationship(resolveUsing: 'code'),
+                ->relationship(resolveUsing: 'code')
+                ->example('A1'),
             ImportColumn::make('donor_name')
+                ->example('Budi')
                 ->rules(['max:255']),
             ImportColumn::make('is_anonymous')
+                ->example('0')
                 ->boolean(),
-            ImportColumn::make('description'),
+            ImportColumn::make('description')
+                ->example('Donasi beras'),
         ];
     }
 

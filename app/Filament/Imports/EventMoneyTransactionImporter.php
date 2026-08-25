@@ -16,22 +16,30 @@ class EventMoneyTransactionImporter extends Importer
         return [
             ImportColumn::make('event')
                 ->relationship(resolveUsing: 'name')
+                ->example('17 Agustusan')
                 ->requiredMapping()
                 ->rules(['required']),
             ImportColumn::make('house')
-                ->relationship(resolveUsing: 'code'),
+                ->relationship(resolveUsing: 'code')
+                ->example('A1'),
             ImportColumn::make('donor_name')
+                ->example('Budi')
                 ->rules(['max:255']),
             ImportColumn::make('is_anonymous')
+                ->example('0')
                 ->boolean(),
             ImportColumn::make('description')
+                ->example('Donasi warga')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('type')
+                ->example('in')
                 ->requiredMapping()
                 ->rules(['required', 'in:in,out']),
-            ImportColumn::make('category'),
+            ImportColumn::make('category')
+                ->example('donation'),
             ImportColumn::make('amount')
+                ->example('100000')
                 ->requiredMapping()
                 ->numeric()
                 ->rules(['required', 'numeric']),
