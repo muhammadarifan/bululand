@@ -2,6 +2,22 @@
 
 @php
 $balance = $totalIncome - $totalExpense;
+$categoryLabels = [
+    'donation' => 'Donasi',
+    'contribution' => 'Iuran Wajib',
+    'sponsorship' => 'Sponsorship',
+    'ticket_sales' => 'Penjualan Tiket',
+    'merchandise' => 'Merchandise',
+    'consumption' => 'Konsumsi',
+    'administration' => 'Administrasi',
+    'decoration' => 'Dekorasi',
+    'documentation' => 'Dokumentasi',
+    'transport' => 'Transportasi',
+    'venue_rental' => 'Sewa Tempat',
+    'sound_system' => 'Sound System',
+    'printing' => 'Percetakan',
+    'others' => 'Lainnya',
+];
 @endphp
 
 @section('title', 'Daftar Transaksi - ' . $event->name)
@@ -234,7 +250,7 @@ $balance = $totalIncome - $totalExpense;
                                         <p class="mt-0.5 text-xs text-neutral-400">
                                             {{ $transaction->created_at->format('d M Y') }}
                                             @if ($transaction->category)
-                                            · {{ $transaction->category }}
+                                            · {{ $categoryLabels[$transaction->category] ?? $transaction->category }}
                                             @endif
                                         </p>
                                         @if ($transaction->description)
@@ -281,7 +297,7 @@ $balance = $totalIncome - $totalExpense;
                                         </p>
                                         @if ($transaction->category || $transaction->donor_name || $transaction->is_anonymous)
                                         <p class="mt-0.5 text-xs text-neutral-400">
-                                            {{ $transaction->category ?? '-' }}
+                                            {{ $transaction->category ? ($categoryLabels[$transaction->category] ?? $transaction->category) : '-' }}
                                             @if ($transaction->is_anonymous)
                                             · Orang Baik {{ $anonymousNumbers[$transaction->id] ?? '' }}
                                             @elseif ($transaction->donor_name)
