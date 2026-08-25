@@ -125,16 +125,16 @@ $categoryLabels = [
             </section>
 
             {{-- Tabs --}}
-            <div x-data="{ activeTab: '{{ request()->has('expense_page') ? 'expense' : 'recap' }}' }" class="mb-12">
+            <div x-data="{ activeTab: 'recap' }" class="mb-12">
                 {{-- Tab Navigation --}}
                 <div class="relative mb-5">
                     <select x-model="activeTab"
                         class="h-11 w-full appearance-none rounded-lg border border-neutral-300 bg-white pl-3.5 pr-9 text-sm font-medium text-neutral-800 outline-none transition focus:border-neutral-800">
                         <option value="recap">Rekap per Rumah ({{ $houseRecap->count() }})</option>
-                        <option value="iuran">Iuran Wajib ({{ $iuranTransactions->total() }})</option>
-                        <option value="donasi_uang">Donasi Uang ({{ $donasiTransactions->total() }})</option>
-                        <option value="barang">Donasi Barang ({{ $itemDonations->total() }})</option>
-                        <option value="expense">Pengeluaran ({{ $expenseTransactions->total() }})</option>
+                        <option value="iuran">Iuran Wajib ({{ $iuranTransactions->count() }})</option>
+                        <option value="donasi_uang">Donasi Uang ({{ $donasiTransactions->count() }})</option>
+                        <option value="barang">Donasi Barang ({{ $itemDonations->count() }})</option>
+                        <option value="expense">Pengeluaran ({{ $expenseTransactions->count() }})</option>
                     </select>
                     <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -270,12 +270,6 @@ $categoryLabels = [
                             </div>
                             @endforelse
                         </div>
-
-                        @if ($donasiTransactions->hasPages())
-                        <div class="border-t border-neutral-200 px-4 py-3">
-                            {{ $donasiTransactions->links() }}
-                        </div>
-                        @endif
                     </div>
                 </div>
 
@@ -317,12 +311,6 @@ $categoryLabels = [
                             </div>
                             @endforelse
                         </div>
-
-                        @if ($expenseTransactions->hasPages())
-                        <div class="border-t border-neutral-200 px-4 py-3">
-                            {{ $expenseTransactions->links() }}
-                        </div>
-                        @endif
                     </div>
                 </div>
 
@@ -368,12 +356,6 @@ $categoryLabels = [
                             </div>
                             @endforelse
                         </div>
-
-                        @if ($itemDonations->hasPages())
-                        <div class="border-t border-neutral-200 px-4 py-3">
-                            {{ $itemDonations->links() }}
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>

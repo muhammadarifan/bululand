@@ -287,7 +287,7 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->with('house')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'iuran_page');
+            ->get();
 
         $donasiTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'in')
@@ -297,13 +297,13 @@ class EventController extends Controller
             })
             ->with('house')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'donasi_page');
+            ->get();
 
         $expenseTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'out')
             ->with('house')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'expense_page');
+            ->get();
 
         // Sequential number for each anonymous donor, ordered by id, so the
         // same transaction always resolves to the same "Orang Baik {n}" label.
@@ -317,7 +317,7 @@ class EventController extends Controller
         $itemDonations = EventItemDonation::where('event_id', $eventModel->id)
             ->with('house')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'item_page');
+            ->get();
 
         // Separate anonymous numbering sequence for item donations.
         $anonymousItemNumbers = EventItemDonation::where('event_id', $eventModel->id)
