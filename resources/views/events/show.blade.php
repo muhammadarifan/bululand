@@ -12,6 +12,7 @@
 @php
 $balance = $totalIncome - $totalExpense;
 $realExpense = $totalExpense + $totalItemDonation;
+$realBalance = $totalIncome - $realExpense;
 @endphp
 
 {{-- Desktop outer wrapper with gray sides --}}
@@ -111,6 +112,28 @@ $realExpense = $totalExpense + $totalItemDonation;
                             <p
                                 class="mt-0.5 text-sm font-bold {{ $balance >= 0 ? 'text-neutral-900' : 'text-neutral-500' }}">
                                 Rp {{ number_format($balance, 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Overview card (angka real, termasuk donasi barang) --}}
+                <div class="mt-3 rounded-xl border border-neutral-200 bg-white">
+                    <div class="grid grid-cols-3 divide-x divide-neutral-100">
+                        <div class="px-3 py-4 text-center">
+                            <span class="text-[10px] font-medium text-neutral-400">Pemasukan</span>
+                            <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($totalIncome, 0,
+                                ',', '.') }}</p>
+                        </div>
+                        <div class="px-3 py-4 text-center">
+                            <span class="text-[10px] font-medium text-neutral-400">Pengeluaran Asli</span>
+                            <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($realExpense, 0,
+                                ',', '.') }}</p>
+                        </div>
+                        <div class="px-3 py-4 text-center">
+                            <span class="text-[10px] font-medium text-neutral-400">Saldo Asli</span>
+                            <p
+                                class="mt-0.5 text-sm font-bold {{ $realBalance >= 0 ? 'text-neutral-900' : 'text-neutral-500' }}">
+                                Rp {{ number_format($realBalance, 0, ',', '.') }}</p>
                         </div>
                     </div>
                 </div>
