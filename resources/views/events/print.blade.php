@@ -142,6 +142,11 @@
         </tfoot>
         @endif
     </table>
+
+    <div style="margin-top: 48px; text-align: right;">
+        <p>Tertanda,<br>Ketua PHBN</p>
+        <p style="margin-top: 56px; font-weight: 600; text-decoration: underline;">Abdul Rozak</p>
+    </div>
 </body>
 
 </html>
