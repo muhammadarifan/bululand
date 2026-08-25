@@ -132,6 +132,17 @@ $realBalance = $totalIncome - $realExpense;
                         </div>
                     </div>
                 </div>
+
+                @if ($totalDebt > 0)
+                {{-- Debt card --}}
+                <div class="mt-3 rounded-xl border border-neutral-200 bg-white">
+                    <div class="px-3 py-4 text-center">
+                        <span class="text-[10px] font-medium text-neutral-400">Hutang</span>
+                        <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($totalDebt, 0, ',',
+                            '.') }}</p>
+                    </div>
+                </div>
+                @endif
             </section>
 
             {{-- Post Section --}}

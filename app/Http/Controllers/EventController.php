@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventDebt;
 use App\Models\EventItemDonation;
 use App\Models\EventMoneyTransaction;
 use App\Models\House;
@@ -95,6 +96,8 @@ class EventController extends Controller
             ->selectRaw('SUM(COALESCE(price, 0) * quantity) as total')
             ->value('total') ?? 0;
 
+        $totalDebt = EventDebt::where('event_id', $eventModel->id)->sum('amount');
+
         return view('events.show', [
             'event' => $eventModel,
             'eventDetail' => $eventDetail,
@@ -103,6 +106,7 @@ class EventController extends Controller
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'totalItemDonation' => $totalItemDonation,
+            'totalDebt' => $totalDebt,
         ]);
     }
 
@@ -266,6 +270,8 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->sum('amount');
 
+        $totalDebt = EventDebt::where('event_id', $eventModel->id)->sum('amount');
+
         // Iuran wajib (contribution), grouped by house, only merging rows
         // that share the same house AND the same is_anonymous value. Rows
         // without a house are never merged with each other (each keeps its
@@ -396,6 +402,7 @@ class EventController extends Controller
             'totalExpense' => $totalExpense,
             'totalItemDonation' => $totalItemDonation,
             'totalContribution' => $totalContribution,
+            'totalDebt' => $totalDebt,
             'houseRecap' => $houseRecap,
             'iuranByHouse' => $iuranByHouse,
             'iuranTransactions' => $iuranTransactions,
