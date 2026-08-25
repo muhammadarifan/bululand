@@ -148,7 +148,7 @@ class EventController extends Controller
                     ->orWhereNull('category');
             })
             ->with('house')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('amount', 'desc')
             ->get();
 
         $expenseTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
@@ -296,7 +296,7 @@ class EventController extends Controller
                     ->orWhereNull('category');
             })
             ->with('house')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('amount', 'desc')
             ->get();
 
         $expenseTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
