@@ -101,7 +101,7 @@
                 <td>{{ $donation->item_name }}</td>
                 <td>{{ $donation->created_at->format('d M Y') }}</td>
                 <td class="amount">{{ $donation->quantity }} {{ $donation->unit }}</td>
-                <td class="amount">{{ $donation->price ? 'Rp ' . number_format($donation->price, 0, ',', '.') : '-' }}</td>
+                <td class="amount">{{ $donation->price ? 'Rp ' . number_format($donation->price * $donation->quantity, 0, ',', '.') : '-' }}</td>
             </tr>
             @empty
             <tr><td class="empty" colspan="5">Belum ada sumbangan barang.</td></tr>

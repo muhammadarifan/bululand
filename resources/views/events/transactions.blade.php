@@ -323,7 +323,7 @@ $categoryLabels = [
                                         </p>
                                         @if ($donation->price)
                                         <p class="mt-0.5 text-xs text-neutral-400">
-                                            Rp {{ number_format($donation->price, 0, ',', '.') }}
+                                            Rp {{ number_format($donation->price * $donation->quantity, 0, ',', '.') }}
                                         </p>
                                         @endif
                                     </div>
