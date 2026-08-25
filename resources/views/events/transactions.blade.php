@@ -92,54 +92,19 @@ $categoryLabels = [
             {{-- Tabs --}}
             <div x-data="{ activeTab: '{{ request()->has('expense_page') ? 'expense' : 'recap' }}' }" class="mb-12">
                 {{-- Tab Navigation --}}
-                <div class="mb-5 overflow-x-auto border-b border-neutral-200" style="-webkit-overflow-scrolling: touch;">
-                    <nav class="-mb-px flex flex-nowrap gap-4 whitespace-nowrap sm:gap-6" role="tablist">
-                        <button @click="activeTab = 'recap'"
-                            :class="activeTab === 'recap' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Rekap per Rumah
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $houseRecap->count() }}</span>
-                        </button>
-                        <button @click="activeTab = 'iuran'"
-                            :class="activeTab === 'iuran' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Iuran Wajib
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $iuranTransactions->total() }}</span>
-                        </button>
-                        <button @click="activeTab = 'donasi_uang'"
-                            :class="activeTab === 'donasi_uang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Donasi Uang
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $donasiTransactions->total() }}</span>
-                        </button>
-                        <button @click="activeTab = 'barang'"
-                            :class="activeTab === 'barang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Donasi Barang
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $itemDonations->total() }}</span>
-                        </button>
-                        <button @click="activeTab = 'expense'"
-                            :class="activeTab === 'expense' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Pengeluaran
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $expenseTransactions->total() }}</span>
-                        </button>
-                    </nav>
+                <div class="relative mb-5">
+                    <select x-model="activeTab"
+                        class="h-11 w-full appearance-none rounded-lg border border-neutral-300 bg-white pl-3.5 pr-9 text-sm font-medium text-neutral-800 outline-none transition focus:border-neutral-800">
+                        <option value="recap">Rekap per Rumah ({{ $houseRecap->count() }})</option>
+                        <option value="iuran">Iuran Wajib ({{ $iuranTransactions->total() }})</option>
+                        <option value="donasi_uang">Donasi Uang ({{ $donasiTransactions->total() }})</option>
+                        <option value="barang">Donasi Barang ({{ $itemDonations->total() }})</option>
+                        <option value="expense">Pengeluaran ({{ $expenseTransactions->total() }})</option>
+                    </select>
+                    <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
 
                 {{-- Rekap Sumbangan Per Rumah Tab --}}
