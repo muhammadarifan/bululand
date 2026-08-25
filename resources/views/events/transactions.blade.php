@@ -92,11 +92,11 @@ $categoryLabels = [
             {{-- Tabs --}}
             <div x-data="{ activeTab: '{{ request()->has('expense_page') ? 'expense' : 'recap' }}' }" class="mb-12">
                 {{-- Tab Navigation --}}
-                <div class="mb-5 overflow-x-auto border-b border-neutral-200">
-                    <nav class="-mb-px flex gap-4 whitespace-nowrap sm:gap-6" role="tablist">
+                <div class="mb-5 overflow-x-auto border-b border-neutral-200" style="-webkit-overflow-scrolling: touch;">
+                    <nav class="-mb-px flex flex-nowrap gap-4 whitespace-nowrap sm:gap-6" role="tablist">
                         <button @click="activeTab = 'recap'"
                             :class="activeTab === 'recap' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
                             Rekap per Rumah
                             <span
@@ -105,7 +105,7 @@ $categoryLabels = [
                         </button>
                         <button @click="activeTab = 'iuran'"
                             :class="activeTab === 'iuran' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
                             Iuran Wajib
                             <span
@@ -114,7 +114,7 @@ $categoryLabels = [
                         </button>
                         <button @click="activeTab = 'donasi_uang'"
                             :class="activeTab === 'donasi_uang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
                             Donasi Uang
                             <span
@@ -123,7 +123,7 @@ $categoryLabels = [
                         </button>
                         <button @click="activeTab = 'barang'"
                             :class="activeTab === 'barang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
                             Donasi Barang
                             <span
@@ -132,7 +132,7 @@ $categoryLabels = [
                         </button>
                         <button @click="activeTab = 'expense'"
                             :class="activeTab === 'expense' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            class="inline-flex shrink-0 items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
                             Pengeluaran
                             <span
