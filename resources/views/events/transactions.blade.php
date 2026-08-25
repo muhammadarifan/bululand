@@ -124,30 +124,30 @@ $categoryLabels = [
                 </div>
 
                 @if ($debts->count() > 0)
-                {{-- Debt card (warning style) --}}
-                <div class="mt-3 rounded-xl border-2 border-amber-400 bg-amber-50">
+                {{-- Debt card --}}
+                <div class="mt-3 rounded-xl border border-neutral-200 bg-white">
                     <div class="flex items-center justify-between px-4 py-3">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-700">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-amber-600">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM10.29 3.86l-8.49 14.7A1.5 1.5 0 003.07 21h17.86a1.5 1.5 0 001.27-2.44l-8.49-14.7a1.5 1.5 0 00-2.42 0z" />
                             </svg>
                             Total Hutang
                         </span>
-                        <span class="text-sm font-bold text-amber-900">Rp {{ number_format($totalDebt, 0, ',', '.')
+                        <span class="text-sm font-bold text-amber-600">Rp {{ number_format($totalDebt, 0, ',', '.')
                             }}</span>
                     </div>
-                    <div class="divide-y divide-amber-200 border-t border-amber-200">
+                    <div class="divide-y divide-neutral-100 border-t border-neutral-100">
                         @foreach ($debts as $debt)
                         <div class="flex items-start justify-between gap-3 px-4 py-3">
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-amber-900">{{ $debt->creditor_name }}
+                                <p class="truncate text-sm font-semibold text-neutral-900">{{ $debt->creditor_name }}
                                 </p>
                                 @if ($debt->description)
-                                <p class="mt-0.5 text-xs text-amber-800">{{ $debt->description }}</p>
+                                <p class="mt-0.5 text-xs text-neutral-700">{{ $debt->description }}</p>
                                 @endif
                             </div>
-                            <span class="shrink-0 text-sm font-bold text-amber-900">Rp {{
+                            <span class="shrink-0 text-sm font-bold text-amber-600">Rp {{
                                 number_format($debt->amount, 0, ',', '.') }}</span>
                         </div>
                         @endforeach
