@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\EventItemDonationExporter;
+use App\Filament\Imports\EventItemDonationImporter;
 use App\Filament\Resources\EventItemDonationResource\Pages\ListEventItemDonations;
 use App\Models\Event;
 use App\Models\EventItemDonation;
@@ -12,6 +14,8 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -178,6 +182,10 @@ class EventItemDonationResource extends Resource
                         'is_anonymous',
                         'house_id',
                     ]),
+                ImportAction::make()
+                    ->importer(EventItemDonationImporter::class),
+                ExportAction::make()
+                    ->exporter(EventItemDonationExporter::class),
             ])
             ->actions([
                 EditAction::make()

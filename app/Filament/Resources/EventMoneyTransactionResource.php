@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\EventMoneyTransactionExporter;
+use App\Filament\Imports\EventMoneyTransactionImporter;
 use App\Filament\Resources\EventMoneyTransactionResource\Pages\BatchCreateEventMoneyTransactions;
 use App\Filament\Resources\EventMoneyTransactionResource\Pages\ListEventMoneyTransactions;
 use App\Models\Event;
@@ -14,6 +16,8 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -236,6 +240,10 @@ class EventMoneyTransactionResource extends Resource
                     ->label('Create Batch House Contribution')
                     ->icon('heroicon-o-document-plus')
                     ->url(EventMoneyTransactionResource::getUrl('batch-create')),
+                ImportAction::make()
+                    ->importer(EventMoneyTransactionImporter::class),
+                ExportAction::make()
+                    ->exporter(EventMoneyTransactionExporter::class),
             ])
             ->actions([
                 EditAction::make()

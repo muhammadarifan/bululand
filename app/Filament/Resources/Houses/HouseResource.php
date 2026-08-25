@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Houses;
 
+use App\Filament\Exports\HouseExporter;
+use App\Filament\Imports\HouseImporter;
 use App\Filament\Resources\Houses\Pages\ManageHouses;
 use App\Models\House;
 use BackedEnum;
@@ -9,6 +11,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -64,6 +68,12 @@ class HouseResource extends Resource
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->importer(HouseImporter::class),
+                ExportAction::make()
+                    ->exporter(HouseExporter::class),
             ])
             ->recordActions([
                 ViewAction::make(),
