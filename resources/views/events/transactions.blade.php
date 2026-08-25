@@ -127,7 +127,7 @@ $categoryLabels = [
             {{-- Tabs --}}
             <div x-data="{ activeTab: 'recap' }" class="mb-12">
                 {{-- Tab Navigation --}}
-                <div class="mb-5 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" style="scrollbar-width: none;">
+                <div class="mb-5 flex gap-2 overflow-x-auto pb-1" style="scrollbar-width: none;">
                     @foreach ([
                         'recap' => 'Rekap per Rumah (' . $houseRecap->count() . ')',
                         'iuran' => 'Iuran Wajib (' . $iuranTransactions->count() . ')',
