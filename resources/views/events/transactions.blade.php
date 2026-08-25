@@ -74,18 +74,45 @@ $balance = $totalIncome - $totalExpense;
             </section>
 
             {{-- Tabs --}}
-            <div x-data="{ activeTab: '{{ request()->has('expense_page') ? 'expense' : 'income' }}' }" class="mb-12">
+            <div x-data="{ activeTab: '{{ request()->has('expense_page') ? 'expense' : 'recap' }}' }" class="mb-12">
                 {{-- Tab Navigation --}}
-                <div class="mb-5 border-b border-neutral-200">
-                    <nav class="-mb-px flex gap-4 sm:gap-6" role="tablist">
-                        <button @click="activeTab = 'income'"
-                            :class="activeTab === 'income' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
+                <div class="mb-5 overflow-x-auto border-b border-neutral-200">
+                    <nav class="-mb-px flex gap-4 whitespace-nowrap sm:gap-6" role="tablist">
+                        <button @click="activeTab = 'recap'"
+                            :class="activeTab === 'recap' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
                             class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
                             role="tab" type="button">
-                            Pemasukan
+                            Rekap per Rumah
                             <span
                                 class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $incomeTransactions->total() }}</span>
+                                $houseRecap->count() }}</span>
+                        </button>
+                        <button @click="activeTab = 'iuran'"
+                            :class="activeTab === 'iuran' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
+                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            role="tab" type="button">
+                            Iuran Wajib
+                            <span
+                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
+                                $iuranTransactions->total() }}</span>
+                        </button>
+                        <button @click="activeTab = 'donasi_uang'"
+                            :class="activeTab === 'donasi_uang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
+                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            role="tab" type="button">
+                            Donasi Uang
+                            <span
+                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
+                                $donasiTransactions->total() }}</span>
+                        </button>
+                        <button @click="activeTab = 'barang'"
+                            :class="activeTab === 'barang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
+                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
+                            role="tab" type="button">
+                            Donasi Barang
+                            <span
+                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
+                                $itemDonations->total() }}</span>
                         </button>
                         <button @click="activeTab = 'expense'"
                             :class="activeTab === 'expense' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
@@ -96,20 +123,11 @@ $balance = $totalIncome - $totalExpense;
                                 class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
                                 $expenseTransactions->total() }}</span>
                         </button>
-                        <button @click="activeTab = 'barang'"
-                            :class="activeTab === 'barang' ? 'border-neutral-800 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-600'"
-                            class="inline-flex items-center gap-1.5 border-b-2 px-1 py-2.5 text-sm font-medium transition"
-                            role="tab" type="button">
-                            Barang
-                            <span
-                                class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">{{
-                                $itemDonations->total() }}</span>
-                        </button>
                     </nav>
                 </div>
 
-                {{-- Pemasukan Tab --}}
-                <div x-data="{ search: '' }" x-show="activeTab === 'income'" x-cloak role="tabpanel">
+                {{-- Rekap Sumbangan Per Rumah Tab --}}
+                <div x-data="{ search: '' }" x-show="activeTab === 'recap'" x-cloak role="tabpanel">
 
                     {{-- Realtime filter input --}}
                     <div class="mb-5">
@@ -124,14 +142,58 @@ $balance = $totalIncome - $totalExpense;
                         </div>
                     </div>
 
-                    {{-- Grouped income list with realtime filter --}}
                     <div class="rounded-xl border border-neutral-200">
                         <div class="border-b border-neutral-100 px-4 py-3">
-                            <h3 class="text-sm font-bold tracking-tight">Pemasukan per Rumah</h3>
+                            <h3 class="text-sm font-bold tracking-tight">Total Sumbangan per Rumah</h3>
+                            <p class="mt-0.5 text-xs text-neutral-400">Iuran wajib + donasi uang + donasi barang bernominal</p>
                         </div>
 
                         <div class="divide-y divide-neutral-100">
-                            @forelse ($incomeByHouse as $item)
+                            @forelse ($houseRecap as $item)
+                            @php $label = $item->house->code ?? '-'; @endphp
+                            <div x-data="{ label: @js($label) }"
+                                x-show="!search || label.toLowerCase().includes(search.toLowerCase())"
+                                class="flex items-center justify-between px-4 py-3.5">
+                                <p class="text-sm font-medium text-neutral-700">
+                                    {{ $label }}
+                                </p>
+                                <p class="shrink-0 text-sm font-semibold text-neutral-800">
+                                    Rp {{ number_format($item->grand_total, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            @empty
+                            <div class="px-4 py-12 text-center text-sm text-neutral-400">
+                                Belum ada sumbangan.
+                            </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Iuran Wajib Tab --}}
+                <div x-data="{ search: '' }" x-show="activeTab === 'iuran'" x-cloak role="tabpanel">
+
+                    {{-- Realtime filter input --}}
+                    <div class="mb-5">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Cari nomor rumah..."
+                                class="h-11 w-full rounded-lg border border-neutral-300 bg-white pl-9 pr-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-800">
+                        </div>
+                    </div>
+
+                    {{-- Grouped iuran list with realtime filter --}}
+                    <div class="rounded-xl border border-neutral-200">
+                        <div class="border-b border-neutral-100 px-4 py-3">
+                            <h3 class="text-sm font-bold tracking-tight">Iuran Wajib per Rumah</h3>
+                        </div>
+
+                        <div class="divide-y divide-neutral-100">
+                            @forelse ($iuranByHouse as $item)
                             @php
                             $label = $item->is_anonymous
                                 ? 'Orang Baik ' . ($anonymousNumbers[$item->first_id] ?? '')
@@ -149,10 +211,55 @@ $balance = $totalIncome - $totalExpense;
                             </div>
                             @empty
                             <div class="px-4 py-12 text-center text-sm text-neutral-400">
-                                Belum ada pemasukan.
+                                Belum ada iuran wajib.
                             </div>
                             @endforelse
                         </div>
+                    </div>
+                </div>
+
+                {{-- Donasi Uang Tab --}}
+                <div x-show="activeTab === 'donasi_uang'" x-cloak role="tabpanel">
+                    <div class="rounded-xl border border-neutral-200">
+                        <div class="divide-y divide-neutral-100">
+                            @forelse ($donasiTransactions as $transaction)
+                            <div class="px-4 py-3.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium truncate">
+                                            {{ $transaction->is_anonymous
+                                                ? 'Orang Baik ' . ($anonymousNumbers[$transaction->id] ?? '')
+                                                : ($transaction->house->code ?? $transaction->donor_name ?? '-') }}
+                                        </p>
+                                        <p class="mt-0.5 text-xs text-neutral-400">
+                                            {{ $transaction->created_at->format('d M Y') }}
+                                            @if ($transaction->category)
+                                            · {{ $transaction->category }}
+                                            @endif
+                                        </p>
+                                        @if ($transaction->description)
+                                        <p class="mt-0.5 text-xs text-neutral-400">
+                                            {{ $transaction->description }}
+                                        </p>
+                                        @endif
+                                    </div>
+                                    <p class="shrink-0 text-sm font-semibold text-neutral-800">
+                                        Rp {{ number_format($transaction->amount, 0, ',', '.') }}
+                                    </p>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="px-4 py-12 text-center text-sm text-neutral-400">
+                                Belum ada donasi uang.
+                            </div>
+                            @endforelse
+                        </div>
+
+                        @if ($donasiTransactions->hasPages())
+                        <div class="border-t border-neutral-200 px-4 py-3">
+                            {{ $donasiTransactions->links() }}
+                        </div>
+                        @endif
                     </div>
                 </div>
 

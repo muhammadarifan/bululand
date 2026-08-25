@@ -140,11 +140,13 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->sum('amount');
 
-        // Income grouped by house, only merging rows that share the same
-        // house AND the same is_anonymous value. Rows without a house are
-        // never merged with each other (each keeps its own group via id).
-        $incomeByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
+        // Iuran wajib (contribution), grouped by house, only merging rows
+        // that share the same house AND the same is_anonymous value. Rows
+        // without a house are never merged with each other (each keeps its
+        // own group via id).
+        $iuranByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'in')
+            ->where('category', 'contribution')
             ->selectRaw('house_id, is_anonymous, donor_name, MIN(id) as first_id, SUM(amount) as total_amount')
             ->with('house')
             ->groupBy(DB::raw("COALESCE(house_id::text, CONCAT('anon_', id))"))
@@ -154,7 +156,14 @@ class EventController extends Controller
             ->orderByDesc('total_amount')
             ->get();
 
-        $incomeTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
+        $iuranTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->where('category', 'contribution')
+            ->with('house')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20, ['*'], 'iuran_page');
+
+        $donasiTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'in')
             ->where(function ($q) {
                 $q->where('category', '!=', 'contribution')
@@ -162,7 +171,7 @@ class EventController extends Controller
             })
             ->with('house')
             ->orderBy('created_at', 'desc')
-            ->paginate(20, ['*'], 'income_page');
+            ->paginate(20, ['*'], 'donasi_page');
 
         $expenseTransactions = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'out')
@@ -191,6 +200,41 @@ class EventController extends Controller
             ->pluck('id')
             ->flip()
             ->map(fn ($index) => $index + 1);
+
+        // Rekap sumbangan per rumah: iuran wajib + donasi uang + donasi
+        // barang bernominal, dijumlahkan per rumah (donasi tanpa rumah,
+        // mis. anonim, tidak masuk rekap ini).
+        $moneyByHouse = EventMoneyTransaction::where('event_id', $eventModel->id)
+            ->where('type', 'in')
+            ->whereNotNull('house_id')
+            ->selectRaw("house_id, SUM(CASE WHEN category = 'contribution' THEN amount ELSE 0 END) as contribution_total, SUM(CASE WHEN category != 'contribution' OR category IS NULL THEN amount ELSE 0 END) as donation_total")
+            ->groupBy('house_id')
+            ->get()
+            ->keyBy('house_id');
+
+        $itemByHouse = EventItemDonation::where('event_id', $eventModel->id)
+            ->whereNotNull('house_id')
+            ->selectRaw('house_id, SUM(COALESCE(price, 0) * quantity) as item_total')
+            ->groupBy('house_id')
+            ->get()
+            ->keyBy('house_id');
+
+        $houseIds = $moneyByHouse->keys()->merge($itemByHouse->keys())->unique();
+        $houses = House::whereIn('id', $houseIds)->get()->keyBy('id');
+
+        $houseRecap = $houseIds->map(function ($houseId) use ($moneyByHouse, $itemByHouse, $houses) {
+            $contributionTotal = $moneyByHouse[$houseId]->contribution_total ?? 0;
+            $donationTotal = $moneyByHouse[$houseId]->donation_total ?? 0;
+            $itemTotal = $itemByHouse[$houseId]->item_total ?? 0;
+
+            return (object) [
+                'house' => $houses[$houseId] ?? null,
+                'contribution_total' => $contributionTotal,
+                'donation_total' => $donationTotal,
+                'item_total' => $itemTotal,
+                'grand_total' => $contributionTotal + $donationTotal + $itemTotal,
+            ];
+        })->sortByDesc('grand_total')->values();
 
         // Search house contribution
         $searchHouse = $request->query('search_house', '');
@@ -225,8 +269,10 @@ class EventController extends Controller
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'totalContribution' => $totalContribution,
-            'incomeByHouse' => $incomeByHouse,
-            'incomeTransactions' => $incomeTransactions,
+            'houseRecap' => $houseRecap,
+            'iuranByHouse' => $iuranByHouse,
+            'iuranTransactions' => $iuranTransactions,
+            'donasiTransactions' => $donasiTransactions,
             'expenseTransactions' => $expenseTransactions,
             'anonymousNumbers' => $anonymousNumbers,
             'itemDonations' => $itemDonations,
