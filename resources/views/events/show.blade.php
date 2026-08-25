@@ -11,6 +11,7 @@
 @section('content')
 @php
 $balance = $totalIncome - $totalExpense;
+$realExpense = $totalExpense + $totalItemDonation;
 @endphp
 
 {{-- Desktop outer wrapper with gray sides --}}
@@ -89,7 +90,7 @@ $balance = $totalIncome - $totalExpense;
 
                 {{-- Single compact overview card --}}
                 <div class="rounded-xl border border-neutral-200 bg-white">
-                    <div class="grid grid-cols-3 divide-x divide-neutral-100">
+                    <div class="grid grid-cols-2 divide-x divide-y divide-neutral-100 sm:grid-cols-4 sm:divide-y-0">
                         <div class="px-3 py-4 text-center">
                             <span class="text-[10px] font-medium text-neutral-400">Pemasukan</span>
                             <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($totalIncome, 0,
@@ -98,6 +99,11 @@ $balance = $totalIncome - $totalExpense;
                         <div class="px-3 py-4 text-center">
                             <span class="text-[10px] font-medium text-neutral-400">Pengeluaran</span>
                             <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($totalExpense, 0,
+                                ',', '.') }}</p>
+                        </div>
+                        <div class="px-3 py-4 text-center">
+                            <span class="text-[10px] font-medium text-neutral-400">Pengeluaran Real</span>
+                            <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($realExpense, 0,
                                 ',', '.') }}</p>
                         </div>
                         <div class="px-3 py-4 text-center">

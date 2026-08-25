@@ -91,6 +91,10 @@ class EventController extends Controller
             ->where('type', 'out')
             ->sum('amount');
 
+        $totalItemDonation = EventItemDonation::where('event_id', $eventModel->id)
+            ->selectRaw('SUM(COALESCE(price, 0) * quantity) as total')
+            ->value('total') ?? 0;
+
         return view('events.show', [
             'event' => $eventModel,
             'eventDetail' => $eventDetail,
@@ -98,6 +102,7 @@ class EventController extends Controller
             'contributionResults' => $contributionResults,
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
+            'totalItemDonation' => $totalItemDonation,
         ]);
     }
 
@@ -133,6 +138,10 @@ class EventController extends Controller
         $totalExpense = EventMoneyTransaction::where('event_id', $eventModel->id)
             ->where('type', 'out')
             ->sum('amount');
+
+        $totalItemDonation = EventItemDonation::where('event_id', $eventModel->id)
+            ->selectRaw('SUM(COALESCE(price, 0) * quantity) as total')
+            ->value('total') ?? 0;
 
         // Contribution total
         $totalContribution = EventMoneyTransaction::where('event_id', $eventModel->id)
@@ -268,6 +277,7 @@ class EventController extends Controller
             'eventDetail' => $eventDetail,
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
+            'totalItemDonation' => $totalItemDonation,
             'totalContribution' => $totalContribution,
             'houseRecap' => $houseRecap,
             'iuranByHouse' => $iuranByHouse,
