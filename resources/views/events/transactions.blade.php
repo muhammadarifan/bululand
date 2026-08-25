@@ -127,19 +127,20 @@ $categoryLabels = [
             {{-- Tabs --}}
             <div x-data="{ activeTab: 'recap' }" class="mb-12">
                 {{-- Tab Navigation --}}
-                <div class="relative mb-5">
-                    <select x-model="activeTab"
-                        class="h-11 w-full appearance-none rounded-lg border border-neutral-300 bg-white pl-3.5 pr-9 text-sm font-medium text-neutral-800 outline-none transition focus:border-neutral-800">
-                        <option value="recap">Rekap per Rumah ({{ $houseRecap->count() }})</option>
-                        <option value="iuran">Iuran Wajib ({{ $iuranTransactions->count() }})</option>
-                        <option value="donasi_uang">Donasi Uang ({{ $donasiTransactions->count() }})</option>
-                        <option value="barang">Donasi Barang ({{ $itemDonations->count() }})</option>
-                        <option value="expense">Pengeluaran ({{ $expenseTransactions->count() }})</option>
-                    </select>
-                    <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                <div class="mb-5 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" style="scrollbar-width: none;">
+                    @foreach ([
+                        'recap' => 'Rekap per Rumah (' . $houseRecap->count() . ')',
+                        'iuran' => 'Iuran Wajib (' . $iuranTransactions->count() . ')',
+                        'donasi_uang' => 'Donasi Uang (' . $donasiTransactions->count() . ')',
+                        'barang' => 'Donasi Barang (' . $itemDonations->count() . ')',
+                        'expense' => 'Pengeluaran (' . $expenseTransactions->count() . ')',
+                    ] as $tabValue => $tabLabel)
+                    <button type="button" @click="activeTab = '{{ $tabValue }}'"
+                        :class="activeTab === '{{ $tabValue }}' ? 'bg-neutral-800 text-white border-neutral-800' : 'bg-white text-neutral-600 border-neutral-300 hover:bg-neutral-100'"
+                        class="h-9 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-xs font-medium transition active:scale-[0.98]">
+                        {{ $tabLabel }}
+                    </button>
+                    @endforeach
                 </div>
 
                 {{-- Rekap Sumbangan Per Rumah Tab --}}
