@@ -96,7 +96,10 @@ class EventController extends Controller
             ->selectRaw('SUM(COALESCE(price, 0) * quantity) as total')
             ->value('total') ?? 0;
 
-        $totalDebt = EventDebt::where('event_id', $eventModel->id)->sum('amount');
+        $debts = EventDebt::where('event_id', $eventModel->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $totalDebt = $debts->sum('amount');
 
         return view('events.show', [
             'event' => $eventModel,
@@ -106,6 +109,7 @@ class EventController extends Controller
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'totalItemDonation' => $totalItemDonation,
+            'debts' => $debts,
             'totalDebt' => $totalDebt,
         ]);
     }
@@ -270,7 +274,10 @@ class EventController extends Controller
             ->where('category', 'contribution')
             ->sum('amount');
 
-        $totalDebt = EventDebt::where('event_id', $eventModel->id)->sum('amount');
+        $debts = EventDebt::where('event_id', $eventModel->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $totalDebt = $debts->sum('amount');
 
         // Iuran wajib (contribution), grouped by house, only merging rows
         // that share the same house AND the same is_anonymous value. Rows
@@ -402,6 +409,7 @@ class EventController extends Controller
             'totalExpense' => $totalExpense,
             'totalItemDonation' => $totalItemDonation,
             'totalContribution' => $totalContribution,
+            'debts' => $debts,
             'totalDebt' => $totalDebt,
             'houseRecap' => $houseRecap,
             'iuranByHouse' => $iuranByHouse,

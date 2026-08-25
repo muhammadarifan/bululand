@@ -123,13 +123,28 @@ $categoryLabels = [
                     </div>
                 </div>
 
-                @if ($totalDebt > 0)
+                @if ($debts->count() > 0)
                 {{-- Debt card --}}
                 <div class="mt-3 rounded-xl border border-neutral-200 bg-white">
-                    <div class="px-3 py-4 text-center">
-                        <span class="text-[10px] font-medium text-neutral-400">Hutang</span>
-                        <p class="mt-0.5 text-sm font-bold text-neutral-900">Rp {{ number_format($totalDebt, 0, ',',
-                            '.') }}</p>
+                    <div class="flex items-center justify-between px-4 py-3">
+                        <span class="text-[10px] font-medium text-neutral-400">Total Hutang</span>
+                        <span class="text-sm font-bold text-neutral-900">Rp {{ number_format($totalDebt, 0, ',', '.')
+                            }}</span>
+                    </div>
+                    <div class="divide-y divide-neutral-100 border-t border-neutral-100">
+                        @foreach ($debts as $debt)
+                        <div class="flex items-start justify-between gap-3 px-4 py-3">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-neutral-900">{{ $debt->creditor_name }}
+                                </p>
+                                @if ($debt->description)
+                                <p class="mt-0.5 text-xs text-neutral-500">{{ $debt->description }}</p>
+                                @endif
+                            </div>
+                            <span class="shrink-0 text-sm font-bold text-neutral-900">Rp {{
+                                number_format($debt->amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
                 @endif
